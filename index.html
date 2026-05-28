@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inteligência de Mercado Repense — Q2/Q3 2026</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --repense-magenta: #E91E63;
+      --repense-dark-magenta: #C2185B;
+      --repense-light-magenta: #F50057;
+      --repense-accent: #D81B60;
+      --bg-primary: #FAFAFA;
+      --bg-secondary: #FFFFFF;
+      --bg-tertiary: #F5F5F5;
+      --text-primary: #212121;
+      --text-secondary: #757575;
+      --text-light: #BDBDBD;
+      --border-color: #E0E0E0;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --danger: #F44336;
+      --info: #2196F3;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--repense-magenta) 0%, var(--repense-dark-magenta) 100%);
+      color: white;
+      padding: 3rem 2rem;
+      box-shadow: 0 4px 20px rgba(233, 30, 99, 0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      font-size: 0.95rem;
+      opacity: 0.95;
+      font-weight: 300;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .controls-section {
+      background: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border-left: 4px solid var(--repense-magenta);
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-btn {
+      padding: 0.6rem 1.25rem;
+      border: 1.5px solid var(--border-color);
+      border-radius: 24px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--repense-magenta);
+      color: var(--repense-magenta);
+      transform: translateY(-2px);
+    }
+
+    .filter-btn.active {
+      background: var(--repense-magenta);
+      color: white;
+      border-color: var(--repense-magenta);
+      box-shadow: 0 4px 12px rgba(233, 30, 99, 0.25);
+    }
+
+    .counter {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .counter::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--repense-magenta);
+    }
+
+    .table-wrapper {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-color);
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      max-height: 700px;
+      overflow-y: auto;
+    }
+
+    .table-scroll::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .table-scroll::-webkit-scrollbar-track {
+      background: var(--bg-tertiary);
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: var(--repense-magenta);
+      border-radius: 4px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb:hover {
+      background: var(--repense-dark-magenta);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    thead th {
+      background: linear-gradient(180deg, #FAFAFA 0%, #F5F5F5 100%);
+      padding: 1rem 1.25rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--repense-magenta);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background: linear-gradient(90deg, rgba(233, 30, 99, 0.03) 0%, transparent 100%);
+      box-shadow: inset 0 0 0 1px rgba(233, 30, 99, 0.1);
+    }
+
+    tbody tr.hidden {
+      display: none;
+    }
+
+    td {
+      padding: 1.25rem;
+      vertical-align: top;
+      color: var(--text-primary);
+    }
+
+    td a {
+      color: var(--repense-magenta);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    td a:hover {
+      color: var(--repense-dark-magenta);
+      text-decoration: underline;
+    }
+
+    .empresa {
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .fat {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .industria {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+
+    .badge.q {
+      background: rgba(76, 175, 80, 0.15);
+      color: #2E7D32;
+    }
+
+    .badge.w {
+      background: rgba(255, 152, 0, 0.15);
+      color: #E65100;
+    }
+
+    .badge.d {
+      background: rgba(244, 67, 54, 0.15);
+      color: #C62828;
+    }
+
+    .badge.v1 {
+      background: rgba(233, 30, 99, 0.15);
+      color: var(--repense-dark-magenta);
+    }
+
+    .badge.v2 {
+      background: rgba(33, 150, 243, 0.15);
+      color: #1565C0;
+    }
+
+    .badge.v3 {
+      background: rgba(76, 175, 80, 0.15);
+      color: #2E7D32;
+    }
+
+    .badge.v12 {
+      background: linear-gradient(135deg, rgba(233, 30, 99, 0.15) 0%, rgba(33, 150, 243, 0.15) 100%);
+      color: var(--repense-dark-magenta);
+    }
+
+    .momentum {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-primary);
+    }
+
+    .fonte {
+      font-size: 0.8rem;
+    }
+
+    .justificativa {
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      line-height: 1.6;
+      max-width: 350px;
+    }
+
+    .gatilho {
+      font-weight: 600;
+      color: var(--repense-magenta);
+    }
+
+    .col-e { width: 12%; }
+    .col-i { width: 8%; }
+    .col-v { width: 7%; }
+    .col-s { width: 6%; }
+    .col-m { width: 20%; }
+    .col-f { width: 9%; }
+    .col-j { width: 38%; }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 2rem;
+    }
+
+    .footer strong {
+      color: var(--repense-magenta);
+    }
+
+    @media (max-width: 1024px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      .col-e { width: 15%; }
+      .col-i { width: 10%; }
+      .col-m { width: 25%; }
+      .col-j { width: 35%; }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 2rem 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.25rem;
+      }
+
+      .header p {
+        font-size: 0.85rem;
+      }
+
+      .container {
+        padding: 1rem;
+      }
+
+      .filters {
+        gap: 0.5rem;
+      }
+
+      .filter-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+
+      thead th, td {
+        padding: 0.75rem;
+      }
+
+      .col-e { width: 20%; }
+      .col-i { width: 12%; }
+      .col-v { width: 8%; }
+      .col-s { width: 8%; }
+      .col-m { display: none; }
+      .col-f { width: 12%; }
+      .col-j { width: 32%; }
+
+      .empresa {
+        font-size: 0.85rem;
+      }
+
+      .fat {
+        font-size: 0.7rem;
+      }
+
+      .badge {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.65rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>📊 Inteligência de Mercado Repense</h1>
+      <p>Qualificação de 41 prospects — Q2/Q3 2026 • Maio 2026</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="controls-section">
+      <div class="filters" id="filters">
+        <button class="filter-btn active" data-filter="all">✓ Todos (41)</button>
+        <button class="filter-btn" data-filter="q">🟢 Qualificados</button>
+        <button class="filter-btn" data-filter="w">🟡 Watch</button>
+        <button class="filter-btn" data-filter="d">🔴 Descartados</button>
+        <button class="filter-btn" data-filter="v1">V1 — Integrada</button>
+        <button class="filter-btn" data-filter="v2">V2 — Digital/CRM</button>
+        <button class="filter-btn" data-filter="v3">V3 — ESG/Causa</button>
+      </div>
+      <div class="counter" id="counter">Exibindo 41 empresas</div>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th class="col-e">Empresa</th>
+              <th class="col-i">Indústria</th>
+              <th class="col-v">Vetor</th>
+              <th class="col-s">Status</th>
+              <th class="col-m">Momentum Confirmado</th>
+              <th class="col-f">Fonte</th>
+              <th class="col-j">Justificativa</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Elaborado em <strong>Maio 2026</strong> • Próxima atualização: <strong>Junho 2026</strong></p>
+    </div>
+  </div>
+
+  <script>
+    const rows = [
+      {e:"Gr. Guararapes (Riachuelo)",fat:"R$ 10,5 bi",ind:"Moda/Varejo",v:"v1+v2",s:"q",m:"Rebranding Guararapes → Riachuelo concluído em 2025. Lucro recorde +117% (R$ 512M). Receita +9% atingindo R$ 10,5bi pela 1ª vez.",f:"cnnbrasil.com.br",fu:"https://www.cnnbrasil.com.br/economia/negocios/riachuelo-novo-nome-da-guararapes-tem-lucro-liquido-de-r-322-mi-no-4tri25-alta-de-288/",j:"<span class='gatilho'>GATILHO DUPLO:</span> rebranding ativo + resultado recorde. Nova identidade de marca exige parceiro 360° para comunicação integrada e CRM (Midway). Perfil V1+V2 com base de 30M+ clientes Midway."},
+      {e:"Tupy",fat:"Rec. ~R$ 9-10 bi",ind:"Fundição/Industrial",v:"v1",s:"q",m:"Novo CEO Harro Burmann assume 1º de junho/2026 (< 180 dias). Saída de Rafael Lucchesi em março/2026. Busca realizada via Heidrick & Struggles.",f:"galpaodasmaquinas.com.br",fu:"https://galpaodasmaquinas.com.br/noticias/tupy-novo-ceo-harro-burmann-2026/",j:"<span class='gatilho'>GATILHO QUENTE:</span> troca de CEO em andamento — janela de entrada ideal. Multinacional com operações no Brasil, México e Portugal. Novos contratos R$ 250M/ano anunciados."},
+      {e:"Biolab (Biolab & Co.)",fat:"R$ 3,2 bi",ind:"Farmacêutico",v:"v1",s:"q",m:"Rebranding corporativo lançado em Abr/2026: Biolab → Biolab & Co. (house of brands). Meta R$ 5 bi em 2027. Nova fábrica Pouso Alegre (MG) inaugurada.",f:"adnews.com.br",fu:"https://adnews.com.br/post/biolab-lanca-marca-biolab-and-co-para-consolidar-ecossistema-e-acelerar-expansao-global",j:"Rebranding total com nova identidade visual (AR Propaganda). 6 unidades de negócio. Meta de crescimento 25% ao ano. Necessita parceiro 360°."},
+      {e:"Merc. São Luiz",fat:"R$ 1,84 bi",ind:"Supermercados",v:"v1",s:"q",m:"Centenário 2026 (fundada 1926) com rebranding: 'São Luiz Supermercado'. Meta 38 lojas. Faturamento +13% (2024→2025). Lidera CE.",f:"exame.com",fu:"https://exame.com/negocios/aos-100-anos-maior-supermercado-do-ceara-fatura-r-18-bilhao/",j:"100 anos em 2026 é gatilho raro para branding. Novo presidente Fernando Ramalho. Expansão agressiva no Nordeste com novos formatos."},
+      {e:"Piracanjuba",fat:"R$ 12 bi",ind:"Laticínios",v:"v1",s:"q",m:"Novo presidente Luiz Claudio Lorenzo (assumiu 2024/25). Aquisição da Emana (2024). Reposicionamento premium com whey protein. 20 lançamentos em 2025.",f:"exame.com",fu:"https://exame.com/negocios/de-residuo-a-negocio-bilionario-piracanjuba-aposta-no-whey-para-superar-os-r-12-bilhoes/",j:"Novo CEO + mudança de estratégia de commodity → marca premium. 2ª maior laticínios do país. Entrada em novos segmentos (suplementos, whey)."},
+      {e:"Onfly",fat:"GMV R$ 1,5 bi",ind:"Travel Tech B2B",v:"v2",s:"q",m:"Rodada Série B R$ 240M (abr/2025). Crescimento +73% no H1/25. Campanhas TV/rádio planejadas para 2026. Campanha com Ingrid Guimarães lançada.",f:"brazileconomy.com.br",fu:"https://brazileconomy.com.br/empresas/2025/08/onfly-cresce-mais-de-70-e-conquista-500-novos-clientes-no-primeiro-semestre-de-2025/",j:"Maior travel tech B2B da LatAm em fase de crescimento acelerado. R$ 240M disponíveis para marketing e produto. Expansão LatAm. CAGR 110% em 4 anos."},
+      {e:"Sicredi (Regional)",fat:"R$ 4 bi",ind:"Financeiro/Cooperativa",v:"v2",s:"q",m:"CMO João Clark participou do Web Summit Rio 2025. Corretora de seguros projeta R$ 4bi em 2025 (+25%). 9,5M associados. Digitalização em curso.",f:"brcooperativo.com.br",fu:"https://brcooperativo.com.br/2025/04/marketing-em-cooperativas-e-investimento-destaca-cmo-do-sicredi/",j:"CMO ativo e estratégico com discurso explícito de transformar marketing. Base enorme de associados para CRM. Digitalização financeira como gatilho V2."},
+      {e:"Banese",fat:"Rec. R$ 2,2 bi",ind:"Banco Regional",v:"v2",s:"q",m:"Lucro recorde R$ 151,5M (+3,3%) em 2025. Receitas +36% no ano. Mulvi Pay cresce 3,6%. Expansão digital acelerada em Sergipe.",f:"sosergipe.com.br",fu:"https://www.sosergipe.com.br/banese-lucra-r-1515-milhoes-em-2025-e-expande-credito-no-estado/",j:"Banco estatal de Sergipe em fase de expansão digital. Ecossistema de pagamentos Mulvi cresce dois dígitos. Perfil V2 ideal: CRM, jornada do cliente, retenção."},
+      {e:"Omie",fat:"Valuation US$ 700M",ind:"SaaS/ERP para PMEs",v:"v2",s:"q",m:"Rodada R$ 855M (set/2025) — maior da LatAm em 2025. Partners Group estreia no Brasil. Meta 1M clientes e US$ 1 bi de receita até 2031.",f:"neofeed.com.br",fu:"https://neofeed.com.br/startups/omie-levanta-r-855-milhoes-a-maior-rodada-de-2025/",j:"Pós-rodada histórica, Omie acelera marketing e vendas. 151k empresas na base. ERP para PMEs com altíssimo LTV e retenção como KPI central."},
+      {e:"Gr. Jereissati (Iguatemi)",fat:"Rec. R$ 1,47 bi",ind:"Shopping Centers",v:"v1",s:"q",m:"Novo CEO Ciro Zica Neto (2025). Aquisição de participação no Shopping Rio Sul. Taxa de ocupação 97,7%. Expansão de marcas premium internacionais.",f:"investnews.com.br",fu:"https://investnews.com.br/negocios/a-aposta-da-familia-jereissati-para-a-iguatemi-mais-shoppings-com-caras-marcas-internacionais/",j:"Novo CEO < 180 dias. Expansão agressiva de portfólio. Posicionamento premium exige comunicação integrada de marcas e brand building."},
+      {e:"Coamo",fat:"R$ 28,7 bi",ind:"Cooperativa Agroindustrial",v:"v1",s:"q",m:"Faturamento R$ 28,7bi em 2025. PL +11,5% (R$ 13,3bi). Investimentos R$ 1,93bi em expansão. 32,7k cooperados em 74 municípios.",f:"tribunadointerior.com.br",fu:"https://www.tribunadointerior.com.br/campo-mourao/coamo-fecha-2025-com-receita-global-de-r-287-bilhoes/",j:"3ª maior cooperativa agro do Brasil. Robustez financeira e escala exigem comunicação institucional profissional. Expansão e modernização criam necessidade de posicionamento."},
+      {e:"C.Vale",fat:"R$ 25,2 bi",ind:"Cooperativa Agroindustrial",v:"v1",s:"q",m:"Faturamento +14,69% em 2025 (R$ 25,2bi). Sobras +83% para cooperados. Nova esmagadora de soja processou 16,4M toneladas. Diversificação em proteínas.",f:"agrimidia.com.br",fu:"https://www.agrimidia.com.br/negocios/cooperativas/c-vale-amplia-faturamento-e-retorno-aos-associados-em-2025-apesar-de-cenario-adverso/",j:"Crescimento forte em ambiente adverso. Nova unidade industrial em operação. Forte comunicação com cooperados e posicionamento regional."},
+      {e:"Lar Cooperativa",fat:"R$ 23,2 bi",ind:"Cooperativa Agroindustrial",v:"v1",s:"q",m:"Faturamento +14,4% em 2025. Resultado financeiro R$ 983M. Distribuição de R$ 335,9M aos associados. Investimentos recordes em infraestrutura.",f:"agrimidia.com.br",fu:"https://www.agrimidia.com.br/negocios/cooperativas/lar-cooperativa-supera-r-232-bilhoes-em-receita-liquida-e-registra-crescimento-historico-em-2025/",j:"3ª maior empresa do agronegócio brasileiro em faturamento. Crescimento consistente. Diversificação em aves, suínos, leite e grãos."},
+      {e:"Copacol",fat:"R$ 11,1 bi",ind:"Cooperativa",v:"v1",s:"q",m:"Faturamento +4,7% em 2025 (R$ 11,1bi). Presença em 85 países. Premiação de comunicação pela Ocepar (mídia cooperativa). Programa Conecta.",f:"portaldoagronegocio.com.br",fu:"https://www.portaldoagronegocio.com.br/gestao-rural/gestao/noticias/copacol-alcanca-faturamento-de-r-111-bilhoes-e-reforca-o-papel-do-cooperativismo-no-desenvolvimento-regional",j:"Marca premiada em comunicação. 85 países de exportação exigem comunicação com múltiplas frentes. Solidez para investir. Avicultura como carro-chefe."},
+      {e:"Frimesa",fat:"R$ 7,04 bi",ind:"Cooperativa Central",v:"v1",s:"q",m:"Faturamento histórico R$ 7,04bi em 2025 (+7%). Composta por Copagril, Lar, Copacol, C.Vale e Primata. Estratégia de agregação de valor.",f:"souagro.net",fu:"https://souagro.net/noticia/2026/02/frimesa-tem-faturamento-historico-de-r-704-bilhoes-e-crescimento-de-7/",j:"Cooperativa central com faturamento recorde. Comunica um portfólio amplo de alimentos processados de 5 cooperativas. V1 para consolidar identidade corporativa."},
+      {e:"Libbs Farmacêutica",fat:"R$ 2-3 bi",ind:"Farmacêutico",v:"v1+v2",s:"q",m:"R$ 200M do BNDES captados para expansão. Meta triplicar receita até 2032. Nova fábrica de alta potência inaugurada em Embu das Artes. Ciclo de inovação em oncologia.",f:"agenciadenoticias.bndes.gov.br",fu:"https://agenciadenoticias.bndes.gov.br/industria/BNDES-financia-expansao-produtiva-da-Libbs-Farmaceutica-com-R$-200-milhoes/",j:"100% nacional em expansão agressiva. R$ 200M do BNDES disponíveis. Novo produto biológico em oncologia. Construção de marca é urgente."},
+      {e:"Docol",fat:"Meta R$ 2 bi",ind:"Metais Sanitários",v:"v1",s:"q",m:"Meta passar de R$ 800M para R$ 2bi até 2028. Aquisição da Franke confirmada. Nova fábrica de louças em MG. R$ 500M em investimentos totais.",f:"fiesc.com.br",fu:"https://fiesc.com.br/pt-br/imprensa/docol-conclui-aquisicao-da-franke-no-brasil-e-expande-atuacao",j:"Maior exportadora de metais sanitários da LatAm. Expansão para louças e cozinhas premium. R$ 500M em capex. Empresa que dobra de tamanho precisa de comunicação integrada."},
+      {e:"Nutrien Ag Solutions",fat:"~R$ 3-5 bi",ind:"Agro/Insumos",v:"v1+v2",s:"q",m:"Reestruturação em 3 diretorias (produtos proprietários, parcerias, fertilizantes). Produtos proprietários + barter crescendo. Expansão LatAm.",f:"br.linkedin.com",fu:"https://br.linkedin.com/company/nutrienbr",j:"Canadense com operação B2B acelerada no Brasil. Novo modelo comercial exige comunicação trade e digital. Head de Marketing ativo."},
+      {e:"Unicesumar (Vitru)",fat:"Rec. R$ 2,2 bi",ind:"Educação EAD",v:"v2",s:"q",m:"Base 915k alunos (+11% em 2025). Incorporação Unicesumar concluída. Crescimento EAD +11%. Novo ciclo de expansão de polos e captação.",f:"nordinvestimentos.com.br",fu:"https://www.nordinvestimentos.com.br/blog/vitru-vtru3-resultados-4t25/",j:"Líder em EAD do Brasil. Retenção de alunos é KPI central. CRM, lifecycle marketing e performance são críticos. V2 nítido para reduzir churn e aumentar LTV."},
+      {e:"SOS Mata Atlântica",fat:"Meta R$ 500M",ind:"ONG Ambiental",v:"v3",s:"q",m:"Aliança Mata Atlântica lançada Nov/2025. R$ 150M já captados, buscando R$ 350M adicionais. Parceria com Summit SP+Verde (pré-COP30).",f:"agenciabrasil.ebc.com.br",fu:"https://agenciabrasil.ebc.com.br/meio-ambiente/noticia/2025-11/sos-mata-atlantica-mobiliza-setor-privado-para-conservacao-do-bioma",j:"Maior mobilização empresarial ambiental pré-COP30. Captação ativa com setor privado. Necessita de comunicação de causa e mensuração de impacto."},
+      {e:"Fund. Roberto Marinho",fat:"N/D",ind:"Fundação/Educação",v:"v3",s:"q",m:"Co.liga escalando com parceiros como CCR e Itaú. Pesquisa 'Juventudes Fora da Escola' lançada em 2025. Plataforma educacional digital ativa.",f:"br.linkedin.com",fu:"https://br.linkedin.com/company/fundacao-roberto-marinho",j:"Pertence ao Grupo Globo. Projetos de impacto nacional em educação, patrimônio e meio ambiente. Mobiliza grandes patrocinadores. V3 para comunicação de causa."},
+      {e:"WWF Brasil",fat:"N/D",ind:"ONG Ambiental",v:"v3",s:"q",m:"COP30 em Belém (nov/2025) como maior catalisador global. Agenda biodiversidade e clima. Crescimento captação com setor privado.",f:"wwf.org.br",fu:"https://www.wwf.org.br/",j:"COP30 no Brasil em novembro/2025 potencializa agenda WWF no ano. Maior organização ambiental global no Brasil. V3 para comunicação de impacto e ESG."},
+      {e:"UNICEF Brasil",fat:"N/D",ind:"ONG Internacional",v:"v3",s:"q",m:"Parcerias com setor privado em crescimento. Programas de infância e educação. Captação nacional ativa. Agenda SDG em pauta.",f:"unicef.org/brazil",fu:"https://www.unicef.org/brazil/",j:"Maior organização de defesa da infância. Reputação global + necessidade de comunicação local para captação e awareness. V3 para campanhas de doação."},
+      {e:"MSF Brasil",fat:"N/D",ind:"ONG Humanitária",v:"v3",s:"q",m:"Crises humanitárias globais em pauta constante. Captação de sócios e awareness. Operações em zonas de conflito comunicadas ativamente.",f:"msf.org.br",fu:"https://www.msf.org.br/",j:"Médicos Sem Fronteiras: reputação de impacto máximo. Necessidade de comunicação de emergências, captação de sócios e posicionamento."},
+      {e:"Oxfam Brasil",fat:"N/D",ind:"ONG Internacional",v:"v3",s:"q",m:"Relatório de desigualdade publicado anualmente com grande repercussão. Agenda de justiça econômica e social no Brasil.",f:"oxfam.org.br",fu:"https://www.oxfam.org.br/",j:"Relatórios anuais de desigualdade com grande cobertura de mídia. Necessita comunicação de causa, advocacy e captação local. V3 para campanhas de impacto."},
+      {e:"Eletronorte",fat:"N/D",ind:"Energia Elétrica",v:"v3",s:"q",m:"30 anos de Alunorte comemorados em 2025. Agenda de descarbonização e energia renovável da região Norte. 11.099 km de linhas de transmissão.",f:"revistaaluminio.com.br",fu:"https://revistaaluminio.com.br/tag/alunorte/",j:"Empresa do sistema Eletrobras com agenda ESG robusta. Comunicação institucional, responsabilidade social na região Norte e sustentabilidade são prioridades."},
+      {e:"Omoda | Jaecoo",fat:"7.215 un. 2025",ind:"Automotivo/EV",v:"v1",s:"q",m:"1º ano no Brasil com 7.215 unidades. Crescimento +43% em dez/25. Meta 50k unidades em 2026. Bruna Marquezine como embaixadora desde out/2025. Plano fábrica nacional.",f:"autossegredos.com.br",fu:"https://www.autossegredos.com.br/marcas/omoda-jaecoo/omoda-jaecoo-fecha-2025-com-mais-de-7-mil-veiculos-vendidos-e-consolida-estreia-no-brasil/",j:"Marca chinesa premium em entrada estratégica no Brasil. 50k unidades em 2026 exige construção de marca massiva. Head de Marketing ativo. Perfil V1 para 360°."},
+      {e:"BrasilAgro",fat:"R$ 1,23 bi",ind:"Agro/Terras",v:"v1",s:"w",m:"Faturamento +5% em FY2025. Produção de grãos +40%. Lucro caiu 39% (pressão de custos). Dividendos de R$ 75M propostos.",f:"investing.com",fu:"https://br.investing.com/news/sec-filings/brasilagro-registra-crescimento-anual-de-5-na-receita-liquida-e-conclui-venda-importante-de-fazenda-93CH-1669814",j:"Faturamento dentro do ICP mas perfil muito B2B/institucional. Investimento em mídia provavelmente baixo. Crescimento moderado. Watch para 2026."},
+      {e:"PIER",fat:"R$ 250M",ind:"Insurtech",v:"v2",s:"w",m:"Faturamento R$ 250M em 2025 (cresceu ~67% vs 2024). App no ChatGPT lançado. Investidores: IFC, Mercado Livre, BTG Pactual. Projeta +50% em 2026.",f:"exame.com",fu:"https://exame.com/inteligencia-artificial/pier-lanca-app-no-chatgpt-e-aposta-em-ia-para-antecipar-nova-disputa-por-clientes-de-seguros/",j:"Crescimento acelerado e tecnologia de ponta, mas faturamento ainda abaixo do ICP. Watch para 2026 quando pode atingir escala compatível. Perfil V2 claro."},
+      {e:"Localfrio (Movecta)",fat:"N/D",ind:"Logística Frigorífica",v:"v1",s:"w",m:"Rebranding recente: Localfrio → Movecta. 68 anos de história. 6 unidades portuárias. Mais de 1.000 colaboradores.",f:"br.linkedin.com",fu:"https://br.linkedin.com/company/localfrio-sa",j:"Rebranding recente é gatilho potencial, mas empresa B2B de logística. Faturamento não público. Sem dados claros de investimento em comunicação. Monitorar."},
+      {e:"Le Biscuit",fat:"> R$ 3 bi",ind:"Varejo",v:"v1+v2",s:"w",m:"Fusão com Casa & Video em 2022. Meta R$ 3bi+. Lojas âncora em shoppings. E-commerce ativo. Expansão 400+ lojas.",f:"wikipedia",fu:"https://pt.wikipedia.org/wiki/Le_Biscuit",j:"Fusão criou um grupo relevante, mas dados financeiros de 2025 não foram divulgados. ICP potencialmente atingido. Monitorar abertura de dados ou troca de executivos."},
+      {e:"Vibra Energia",fat:"Rec. R$ 189,8 bi",ind:"Energia/Combustíveis",v:"v1",s:"w",m:"EBITDA R$ 7,9bi em 2025. Receita +9,7%. Novos 155 postos no trim. CEO Ernesto Pousada mantido. Rede de 7.514 postos.",f:"vibraenergia.com.br",fu:"https://ri.vibraenergia.com.br",j:"Empresa gigante com receita muito acima do ICP. Investimento em mídia provavelmente superior. Competição com grandes agências. Watch para frentes específicas."},
+      {e:"Hydro Alunorte",fat:"N/D",ind:"Alumínio/Industrial",v:"v3",s:"w",m:"30 anos de Alunorte em 2025. Descarbonização como prioridade com LNG. Parceria com Glencore 30%. Operações estáveis no Pará.",f:"hydro.com",fu:"https://www.hydro.com/br/br/imprensa/noticias/2025/resultados-do-segundo-trimestre-de-2025-da-hydro-desempenho-e-disciplina-de-capital-sustentam-resultados-solidos/",j:"Empresa norueguesa com comunicação corporativa e global. Agenda ESG local existe mas decisões são em Oslo. Perfil V3 para comunicação regional, mas acesso limitado."},
+      {e:"Porto Seguro RJ",fat:"N/D",ind:"Seguros",v:"v2",s:"w",m:"Sem dados específicos para a unidade RJ. Porto Seguro nacional tem R$ 7-10bi. Unidade regional sem dados.",f:"—",fu:"#",j:"Sem dados específicos para a operação RJ. Porto Seguro como grupo nacional seria mais relevante. Confirmar se é filial regional ou entidade independente antes de prospectar."},
+      {e:"Sodiê Doces",fat:"R$ 800M",ind:"Alimentos/Franquia",v:"v1",s:"w",m:"Faturamento R$ 800M em 2025 (+8,1%). 400 lojas. Novo site/marketplace lançado (R$ 1,5M investidos). 25 lojas inauguradas em 2025.",f:"centraldovarejo.com.br",fu:"https://centraldovarejo.com.br/sodie-doces-fatura-r-800-milhoes-em-2025-e-projeta-novas-unidades/",j:"Faturamento dentro do ICP mas investimento histórico em mídia é modesto. Meta R$ 1bi pode mudar cenário. Watch para 2026: se bater R$ 1bi, qualifica para V1."},
+      {e:"Ademicon",fat:"R$ 33,5 bi",ind:"Consórcio",v:"v1+v2",s:"w",m:"R$ 100M investidos em marketing em 2025 (+38%). BBB, São Paulo FC, TV. GPAC como agência criativa. CEO Tatiana Schuchovsky.",f:"exame.com",fu:"https://exame.com/marketing/ademicon-investe-r-100-milhoes-em-marketing-e-projeta-r-335-bi-em-consorcios-em-2025/",j:"Conta criativa ocupada pela GPAC. Mas R$ 100M em marketing abre espaço para digital/CRM/performance (V2). Monitorar possível separação ou abertura de novos projetos."},
+      {e:"M. Dias Branco",fat:"R$ 10,4 bi",ind:"Alimentos",v:"v1",s:"d",m:"CP+B contratada em Dez/2025 para 360° de Piraquê, Vitarella, Adria, Isabela, Frontera e Jasmine.",f:"revistalivemarketing.com.br",fu:"https://revistalivemarketing.com.br/m-dias-branco-entra-em-2026-com-nova-agencia-de-comunicacao/",j:"<span class='gatilho'>CONTA OCUPADA.</span> CP+B assumiu criação, social, mídia on/off e gestão 360° em Jan/2026. Descartado por contrato recente. Retornar em 2027."},
+      {e:"Portobello",fat:"R$ 2,6 bi",ind:"Revestimentos",v:"v1",s:"d",m:"Prejuízo líquido R$ 291M em 2025. Ação PTBL3 em mínima histórica (-49,65% em 12 meses). Endividamento elevado.",f:"investing.com",fu:"https://br.investing.com/news/transcripts/resultados-do-quarto-trimestre-de-2025-da-portobello-mostram-sinais-mistos-93CH-1888077",j:"<span class='gatilho'>SITUAÇÃO CRÍTICA.</span> Prejuízo de R$ 291M e ação próxima à mínima histórica. Empresa não está em posição de investir em comunicação agora. Descartado."},
+      {e:"Neta Auto",fat:"163 un. 2025",ind:"Automotivo/EV",v:"v1",s:"d",m:"Apenas 163 unidades emplacadas em 2025. Matriz em recuperação judicial na China. Dívidas com fornecedores de marketing no Brasil.",f:"automaistv.com.br",fu:"https://www.automaistv.com.br/mercado/neta-segue-emplacando-no-brasil-mesmo-apos-recuperacao-judicial-na-china/",j:"<span class='gatilho'>CRISE GRAVE.</span> Matriz quase falida, operação brasileira mínima. Dívidas não pagas com parceiros. Sem perspectiva de investimento. Descartado."},
+      {e:"Seres",fat:"N/A",ind:"Automotivo/EV",v:"v1",s:"d",m:"Lançamento Brasil Jul/2023. Venda direta (sem concessionárias). Presença em SP, DF, SC e RJ apenas. Sem dados de faturamento relevante.",f:"cnnbrasil.com.br",fu:"https://www.cnnbrasil.com.br/economia/macroeconomia/nova-marca-de-carros-eletricos-diz-que-chegou-no-brasil-para-brigar-com-as-gigantes-do-setor/",j:"Escala mínima no Brasil, venda direta sem rede estruturada. Faturamento irrelevante para o ICP. Posicionamento premium mas sem musculatura financeira. Descartado."},
+      {e:"Potencial Biodiesel",fat:"N/D",ind:"Energia/Biodiesel",v:"v3",s:"d",m:"Sem dados públicos de faturamento ou investimento em comunicação disponíveis.",f:"—",fu:"#",j:"Empresa de capital fechado sem dados públicos confiáveis. Faturamento e porte desconhecidos. Setor de biodiesel com poucos precedentes de branding. Descartado."}
+    ];
+
+    const tbody = document.getElementById('tbody');
+    const counter = document.getElementById('counter');
+    const filters = document.querySelectorAll('.filter-btn');
+    let current = 'all';
+
+    function renderRows() {
+      let count = 0;
+      tbody.querySelectorAll('tr').forEach(tr => {
+        const show = current === 'all' || tr.dataset.status === current || tr.dataset.vetor === current;
+        tr.classList.toggle('hidden', !show);
+        if (show) count++;
+      });
+      counter.textContent = `Exibindo ${count} de 41 empresas`;
+    }
+
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      const vmap = { v1: 'V1 — Integrada', v2: 'V2 — Digital/CRM', 'v1+v2': 'V1 + V2', v3: 'V3 — ESG/Causa' };
+      const vcls = { 'v1': 'v1', 'v2': 'v2', 'v1+v2': 'v12', 'v3': 'v3' };
+      const smap = { q: '🟢 Qualificado', w: '🟡 Watch', d: '🔴 Descartado' };
+      const scls = { q: 'q', w: 'w', d: 'd' };
+      const vfilter = r.v.replace(/\+.*/, '');
+      tr.dataset.status = r.s;
+      tr.dataset.vetor = vfilter;
+      tr.innerHTML = `
+        <td>
+          <span class="empresa">${r.e}</span>
+          <div class="fat">${r.fat}</div>
+        </td>
+        <td class="industria">${r.ind}</td>
+        <td><span class="badge ${vcls[r.v] || 'v1'}">${vmap[r.v] || r.v}</span></td>
+        <td><span class="badge ${scls[r.s]}">${smap[r.s]}</span></td>
+        <td class="momentum">${r.m}</td>
+        <td class="fonte"><a href="${r.fu}" target="_blank">${r.f}</a></td>
+        <td class="justificativa">${r.j}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    filters.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filters.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        current = btn.dataset.filter;
+        renderRows();
+      });
+    });
+
+    renderRows();
+  </script>
+
+</body>
+</html>
