@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapeamento de Contas ICP & Exportador XLSX - Repense</title>
+    
+    <!-- Tailwind CSS para Estilização Premium -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para Ícones Fluídos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- xlsx-js-style para Geração de Planilhas Excel Completamente Estilizadas e Layoutadas -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        magenta: {
+                            50: '#fff1f7',
+                            100: '#ffe3f0',
+                            500: '#e3007e', // Rosa Magenta Oficial Repense
+                            600: '#c2006b',
+                            700: '#9e0055'
+                        },
+                        carbon: {
+                            800: '#1c1c1e',
+                            900: '#0b0b0c' // Preto Carbono Oficial Repense
+                        },
+                        offwhite: {
+                            50: '#faf9fa', // Off-white Oficial Repense
+                            100: '#f4f3f4'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #faf9fa;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e3007e;
+        }
+    </style>
+</head>
+<body class="bg-offwhite-50 text-carbon-900 font-sans antialiased min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Header / Navbar -->
+    <header class="bg-carbon-900 text-white shadow-md sticky top-0 z-30 border-b border-magenta-500/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-magenta-500 p-2 rounded-lg text-white font-black text-xl tracking-wider">
+                    RP
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-offwhite-50">REPENSE <span class="text-magenta-500">BD HUB</span></h1>
+                    <p class="text-xs text-slate-400">Desenvolvimento de Novos Negócios 2026</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="bg-magenta-500/20 text-magenta-100 text-xs px-2.5 py-1 rounded-full font-medium border border-magenta-500/30 flex items-center gap-1.5">
+                    <span class="h-2 w-2 rounded-full bg-magenta-500 animate-pulse"></span>
+                    Playbook V14 Alinhado
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Welcome & Context Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-1 max-w-3xl">
+                <div class="text-xs uppercase font-semibold text-magenta-500 tracking-widest">Base de Dados Qualificada • Q3 2026 Pipeline</div>
+                <h2 class="text-2xl font-bold text-carbon-900">Mapeamento de Contas Qualificadas, Watch e Descartadas</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Painel comercial contendo os leads rigorosamente qualificados com base nos rankings de Ibope Media/CENP. Integre bases regionais, gere e-mails com o Gemini clicando nas linhas e exporte direto para <strong>XLSX com o layout premium oficial da Repense contendo links diretos para o site de cada empresa</strong>.
+                </p>
+            </div>
+            <div class="flex flex-shrink-0 flex-col sm:flex-row gap-3">
+                <button onclick="exportToExcel()" class="bg-magenta-500 hover:bg-magenta-600 text-white font-semibold px-5 py-3 rounded-xl shadow-lg hover:shadow-magenta-500/20 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-excel text-lg"></i>
+                    Exportar para XLSX
+                </button>
+                <button onclick="openAddModal()" class="bg-carbon-900 hover:bg-carbon-800 text-white font-semibold px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus text-magenta-500"></i>
+                    Nova Conta
+                </button>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard Summary -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                <div class="text-xs text-slate-500 font-medium uppercase tracking-wider">Total Mapeado</div>
+                <div class="text-2xl font-bold text-carbon-900 mt-1" id="total-accounts">73</div>
+                <div class="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check"></i> Higienizado (Sem Duplicatas)
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                <div class="text-xs text-slate-500 font-medium uppercase tracking-wider">Qualificados (🟢)</div>
+                <div class="text-2xl font-bold text-magenta-500 mt-1" id="qualified-accounts-metric">69</div>
+                <div class="text-xs text-slate-500 mt-1">Gatilho de Mídia Ativo</div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                <div class="text-xs text-slate-500 font-medium uppercase tracking-wider">Watch List (🟡)</div>
+                <div class="text-2xl font-bold text-amber-500 mt-1" id="watch-accounts-metric">3</div>
+                <div class="text-xs text-slate-500 mt-1">Acompanhamento Tático</div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                <div class="text-xs text-slate-500 font-medium uppercase tracking-wider">Descartados (🔴)</div>
+                <div class="text-2xl font-bold text-red-500 mt-1" id="discarded-accounts-metric">1</div>
+                <div class="text-xs text-slate-500 mt-1">Contrato ou Crise Impeditiva</div>
+            </div>
+        </div>
+
+        <!-- Filters Block -->
+        <div class="bg-white rounded-xl border border-slate-200 p-5 mb-6 shadow-sm space-y-4">
+            <h3 class="text-sm font-semibold text-carbon-900 flex items-center gap-2">
+                <i class="fa-solid fa-filter text-magenta-500"></i> Filtros de Inteligência Comercial (CENP/Ibope)
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Search -->
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="search-input" oninput="applyFilters()" placeholder="Buscar empresa, agência..." class="pl-10 w-full rounded-xl border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500 bg-offwhite-50 hover:bg-offwhite-50 transition-colors">
+                </div>
+                <!-- Region Filter -->
+                <div>
+                    <select id="region-filter" onchange="applyFilters()" class="w-full rounded-xl border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500 bg-offwhite-50">
+                        <option value="Todos">Todas as Regiões</option>
+                        <option value="São Paulo">São Paulo (SP)</option>
+                        <option value="Rio de Janeiro">Rio de Janeiro (RJ)</option>
+                        <option value="Sul">Região Sul (PR/SC/RS)</option>
+                        <option value="Nordeste">Região Nordeste</option>
+                        <option value="Centro-Oeste">Região Centro-Oeste</option>
+                        <option value="Norte">Região Norte</option>
+                    </select>
+                </div>
+                <!-- Industry Filter (Dynamic) -->
+                <div>
+                    <select id="industry-filter" onchange="applyFilters()" class="w-full rounded-xl border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500 bg-offwhite-50">
+                        <option value="Todos">Todas as Indústrias</option>
+                        <!-- Injected Dynamically -->
+                    </select>
+                </div>
+                <!-- Vector Filter -->
+                <div>
+                    <select id="vector-filter" onchange="applyFilters()" class="w-full rounded-xl border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500 bg-offwhite-50">
+                        <option value="Todos">Todos os Vetores</option>
+                        <option value="V1">V1 (Agência Integrada)</option>
+                        <option value="V2">V2 (CRM / Digital / Performance)</option>
+                        <option value="V1 / V2">V1 / V2 (Integrada + CRM)</option>
+                        <option value="V3">V3 (Causa / ESG)</option>
+                        <option value="V1 / V3">V1 / V3 (Integrada + Causa)</option>
+                    </select>
+                </div>
+                <!-- Status Filter -->
+                <div>
+                    <select id="status-filter" onchange="applyFilters()" class="w-full rounded-xl border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500 bg-offwhite-50 font-medium text-slate-700">
+                        <option value="Todos">Qualificação (Todos)</option>
+                        <option value="Qualificado">🟢 Apenas Qualificados</option>
+                        <option value="Watch">🟡 Apenas Watch List</option>
+                        <option value="Descartado">🔴 Apenas Descartados</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Table Block -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 bg-offwhite-100 flex items-center justify-between">
+                <span class="text-sm font-semibold text-carbon-900" id="showing-count">Mostrando 0 de 0 empresas</span>
+                <span class="text-xs text-slate-500">Clique na linha da empresa para abrir as estratégias e gerador de e-mails com IA</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-offwhite-50 text-slate-600 text-xs font-semibold uppercase tracking-wider">
+                            <th class="py-3 px-4 w-12 text-center">ID</th>
+                            <th class="py-3 px-4 min-w-[170px]">Empresa</th>
+                            <th class="py-3 px-4">Qualificação</th>
+                            <th class="py-3 px-4">Indústria</th>
+                            <th class="py-3 px-4">Região</th>
+                            <th class="py-3 px-4 text-center">Vetor</th>
+                            <th class="py-3 px-4">Faturamento</th>
+                            <th class="py-3 px-4">Verba de Mídia</th>
+                            <th class="py-3 px-4">Website</th>
+                            <th class="py-3 px-4 min-w-[160px]">Agência Atual / Perfil</th>
+                            <th class="py-3 px-4 min-w-[260px]">Oportunidade / Gatilho de Abordagem</th>
+                            <th class="py-3 px-4 w-24 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="company-table-body" class="divide-y divide-slate-200 text-sm text-slate-700">
+                        <!-- Dynamic Injection -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Slide-over Drawer for Gemini AI Interaction (Cockpit CRM) -->
+    <div id="ai-drawer" class="fixed inset-y-0 right-0 z-40 w-full max-w-xl bg-white shadow-2xl border-l border-slate-200 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <!-- Drawer Header -->
+        <div class="p-6 bg-carbon-900 text-white flex items-center justify-between border-b border-magenta-500/20">
+            <div class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-magenta-500 to-pink-500 flex items-center justify-center shadow-md">
+                    <i class="fa-solid fa-wand-magic-sparkles text-lg animate-pulse"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base tracking-wide" id="drawer-title">Cockpit de IA Repense</h3>
+                    <p class="text-xs text-slate-400">Inteligência de Vendas e Cold Outreach</p>
+                </div>
+            </div>
+            <button onclick="closeAIDrawer()" class="p-2 text-slate-400 hover:text-white rounded-lg transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Company Quick-Stats Banner -->
+        <div class="bg-magenta-50 border-b border-magenta-100 p-5 grid grid-cols-2 gap-3 text-xs">
+            <div>
+                <span class="block text-slate-500 font-semibold uppercase">Target</span>
+                <span class="text-sm font-bold text-carbon-900" id="drawer-company-name">-</span>
+            </div>
+            <div>
+                <span class="block text-slate-500 font-semibold uppercase">Vetor Comercial</span>
+                <span class="inline-block mt-0.5 px-2 py-0.5 rounded-md font-bold bg-magenta-100 text-magenta-700 border border-magenta-200" id="drawer-company-vector">-</span>
+            </div>
+            <div>
+                <span class="block text-slate-500 font-semibold uppercase">Verba de Mídia</span>
+                <span class="text-carbon-900 font-bold" id="drawer-company-spend">-</span>
+            </div>
+            <div>
+                <span class="block text-slate-500 font-semibold uppercase">Qualificação</span>
+                <span class="text-carbon-900 font-bold" id="drawer-company-tier">-</span>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="border-b border-slate-200 flex text-sm">
+            <button onclick="switchAITab('outreach')" id="tab-outreach-btn" class="flex-1 py-3 text-center border-b-2 border-magenta-500 font-bold text-magenta-500 transition-colors">
+                ✨ Prospecção Personalizada
+            </button>
+            <button onclick="switchAITab('diagnostico')" id="tab-diagnostico-btn" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium transition-colors">
+                ✨ Análise & Hooks
+            </button>
+        </div>
+
+        <!-- Drawer Content Area -->
+        <div class="flex-grow overflow-y-auto p-6 space-y-6">
+            <!-- Outreach AI Tab -->
+            <div id="tab-outreach-content" class="space-y-4">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Parâmetros de Tom e Script</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-500 font-bold mb-1">Tone of Voice</label>
+                            <select id="ai-tone" class="w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-medium">
+                                <option value="Estratégico e Desafiador">Estratégico & Desafiador</option>
+                                <option value="Colaborativo e Parceiro">Colaborativo & Parceiro</option>
+                                <option value="Baseado em Dados e Performance">Baseado em Dados & ROI</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 font-bold mb-1">Tipo de Canal</label>
+                            <select id="ai-channel" class="w-full text-xs p-2 rounded-lg border border-slate-300 bg-white font-medium">
+                                <option value="E-mail Outbound Completo">E-mail de Prospecção</option>
+                                <option value="Mensagem Curta para LinkedIn">Abordagem curta LinkedIn</option>
+                                <option value="Follow-up Rápido">Follow-up pós 3 dias</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="generateOutreach()" class="w-full bg-magenta-500 hover:bg-magenta-600 text-white font-semibold text-xs py-2.5 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                        ✨ Gerar Abordagem de Alta Conversão
+                    </button>
+                </div>
+
+                <!-- AI Output Box -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Script Gerado pelo Gemini</span>
+                        <button onclick="copyToClipboard('outreach-output')" class="text-xs text-magenta-500 hover:text-magenta-700 font-semibold flex items-center gap-1 bg-magenta-50 hover:bg-magenta-100 py-1 px-2.5 rounded-lg transition-colors">
+                            <i class="fa-regular fa-copy"></i> Copiar Conteúdo
+                        </button>
+                    </div>
+                    <div class="relative bg-slate-900 text-slate-100 rounded-xl p-4 min-h-[250px] max-h-[400px] overflow-y-auto font-mono text-xs leading-relaxed border border-slate-800 shadow-inner">
+                        <div id="outreach-loading" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center space-y-3 hidden">
+                            <i class="fa-solid fa-spinner animate-spin text-3xl text-magenta-500"></i>
+                            <span class="text-slate-400 font-sans">Gemini está lapidando o script...</span>
+                        </div>
+                        <pre id="outreach-output" class="whitespace-pre-wrap font-mono">Clique no botão acima para acionar a Inteligência Artificial e gerar uma cadência personalizada.</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnóstico AI Tab -->
+            <div id="tab-diagnostico-content" class="space-y-4 hidden">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                    <p class="text-xs text-slate-600">
+                        O Gemini analisará as fraquezas competitivas, o faturamento estimado, a verba de mídia e sugerirá uma estratégia de ataque baseada nos Tiers do CENP/Ibope e no Playbook da Repense.
+                    </p>
+                    <button onclick="generateDiagnosis()" class="w-full bg-magenta-600 hover:bg-magenta-700 text-white font-semibold text-xs py-2.5 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-brain"></i>
+                        ✨ Analisar Dores e Sugerir Hooks
+                    </button>
+                </div>
+
+                <!-- AI Output Box -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Análise Estratégica Completa</span>
+                        <button onclick="copyToClipboard('diagnostico-output')" class="text-xs text-magenta-500 hover:text-magenta-700 font-semibold flex items-center gap-1 bg-magenta-50 hover:bg-magenta-100 py-1 px-2.5 rounded-lg transition-colors">
+                            <i class="fa-regular fa-copy"></i> Copiar Conteúdo
+                        </button>
+                    </div>
+                    <div class="relative bg-slate-900 text-slate-100 rounded-xl p-4 min-h-[250px] max-h-[400px] overflow-y-auto font-mono text-xs leading-relaxed border border-slate-800 shadow-inner">
+                        <div id="diagnostico-loading" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center space-y-3 hidden">
+                            <i class="fa-solid fa-spinner animate-spin text-3xl text-magenta-500"></i>
+                            <span class="text-slate-400 font-sans">Gemini está analisando o mercado...</span>
+                        </div>
+                        <pre id="diagnostico-output" class="whitespace-pre-wrap font-mono">Execute a análise IA para mapear objeções, decisores-chave e o plano de ação.</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer Footer with info / guidance -->
+        <div class="p-4 border-t border-slate-100 bg-slate-50 text-[11px] text-slate-500 text-center">
+            Abordagem baseada no manual interno <strong>Repense BD Playbook V14-2026</strong>.
+        </div>
+    </div>
+
+    <!-- Background overlay for slide drawer -->
+    <div id="drawer-overlay" onclick="closeAIDrawer()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0"></div>
+
+    <!-- Edit/Add Modal -->
+    <div id="company-modal" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 class="font-bold text-lg text-carbon-900" id="modal-title">Editar Cadastro de Conta</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="modal-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 overflow-y-auto flex-grow">
+                <input type="hidden" id="modal-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Nome da Empresa</label>
+                        <input type="text" id="modal-name" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Região</label>
+                        <select id="modal-region" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500">
+                            <option value="São Paulo">São Paulo</option>
+                            <option value="Rio de Janeiro">Rio de Janeiro</option>
+                            <option value="Sul">Sul</option>
+                            <option value="Nordeste">Nordeste</option>
+                            <option value="Centro-Oeste">Centro-Oeste</option>
+                            <option value="Norte">Norte</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Indústria</label>
+                        <input type="text" id="modal-industry" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500" placeholder="Ex: Farmacêutico">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Vetor de Atuação</label>
+                        <select id="modal-vector" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500">
+                            <option value="V1">V1 (Integrada)</option>
+                            <option value="V2">V2 (CRM / Digital)</option>
+                            <option value="V1 / V2">V1 / V2 (Integrada + CRM)</option>
+                            <option value="V3">V3 (Impacto Social)</option>
+                            <option value="V1 / V3">V1 / V3 (Integrada + Causa)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Faturamento Estimado</label>
+                        <input type="text" id="modal-revenue" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500" placeholder="ex: R$ 400 Milhões">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Verba Anual Mídia</label>
+                        <input type="text" id="modal-adspend" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500" placeholder="ex: R$ 6M - 10M">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Status de Prospecção</label>
+                        <select id="modal-status" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500">
+                            <option value="Qualificado">Qualificado (🟢)</option>
+                            <option value="Watch">Watch List (🟡)</option>
+                            <option value="Descartado">Descartado (🔴)</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Website URL</label>
+                        <input type="url" id="modal-website" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500" placeholder="https://exemplo.com.br">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Agência Atual / Perfil</label>
+                    <input type="text" id="modal-agency" required class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500" placeholder="ex: Agência Local Offline">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Gatilho de Abordagem / Oportunidade</label>
+                    <textarea id="modal-opportunity" required rows="3" class="w-full rounded-lg border-slate-200 border p-2.5 text-sm focus:ring-2 focus:ring-magenta-500 focus:border-magenta-500" placeholder="Insira o diagnóstico ou argumento da abordagem baseada em CRM ou dados..."></textarea>
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 text-sm">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-magenta-500 text-white rounded-lg hover:bg-magenta-600 text-sm font-semibold">Salvar Dados</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal (Substituto do confirm) -->
+    <div id="delete-confirm-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200 p-6 space-y-4">
+            <div class="flex items-center space-x-3 text-magenta-500">
+                <div class="h-10 w-10 rounded-full bg-magenta-50 flex items-center justify-center text-xl flex-shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 class="font-bold text-lg text-carbon-900">Confirmar Exclusão</h3>
+            </div>
+            <p class="text-sm text-slate-500 leading-relaxed">
+                Tem certeza de que deseja remover esta conta da sua lista de prospecção do ICP? Esta ação não pode ser desfeita.
+            </p>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeDeleteModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 text-xs font-semibold">Cancelar</button>
+                <button id="confirm-delete-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-xs font-semibold">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white rounded-xl shadow-2xl p-4 border border-slate-800 flex items-center space-x-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+        <div class="h-8 w-8 rounded-full bg-magenta-100 text-magenta-500 flex items-center justify-center text-lg flex-shrink-0" id="toast-icon">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+            <div class="font-bold text-sm" id="toast-title">Notificação</div>
+            <div class="text-xs text-slate-400 mt-0.5" id="toast-message">Mensagem do sistema</div>
+        </div>
+    </div>
+
+    <script>
+        // Banco de dados dinâmico das 73 contas qualificadas, watches e desqualificados
+        let companies = [
+            // SÃO PAULO (SP)
+            { id: 1, name: "Gr. Guararapes (Riachuelo)", industry: "Moda/Varejo", region: "São Paulo", vector: "V1 / V2", revenue: "R$ 10,5 Bilhões", adSpend: "R$ 20M - R$ 30M", currentAgency: "DM9 / Interna", status: "Qualificado", opportunity: "Rebranding Guararapes → Riachuelo concluído em 2025. Nova identidade de marca exige parceiro para comunicação integrada e CRM (Midway).", website: "https://www.riachuelo.com.br" },
+            { id: 2, name: "Biolab (Biolab & Co.)", industry: "Farmacêutico", region: "São Paulo", vector: "V1", revenue: "R$ 3,2 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "AR Propaganda", status: "Qualificado", opportunity: "Rebranding corporativo Biolab & Co. Necessita parceiro 360° para consolidar arquitetura de marcas nacional e internacional.", website: "https://www.biolabfarma.com.br" },
+            { id: 3, name: "Piracanjuba", industry: "Alimentos/Lácteos", region: "São Paulo", vector: "V1", revenue: "R$ 12 Bilhões", adSpend: "R$ 20M - R$ 30M", currentAgency: "Agências Nacionais", status: "Qualificado", opportunity: "Novo presidente foca em produtos de alta margem (Whey Protein, Suplementos). Transição perfeita para branding V1.", website: "https://www.piracanjuba.com.br" },
+            { id: 4, name: "Onfly", industry: "SaaS/Travel Tech", region: "São Paulo", vector: "V2", revenue: "GMV R$ 1,5 Bilhão", adSpend: "R$ 5M - R$ 8M", currentAgency: "Interna / Performance", status: "Qualificado", opportunity: "Fase acelerada pós-aporte Série B. Foco crítico em LTV, engajamento e marketing de retenção corporativo (SaaS).", website: "https://www.onfly.com.br" },
+            { id: 5, name: "Omie", industry: "SaaS/ERP", region: "São Paulo", vector: "V2", revenue: "Valuation US$ 700M", adSpend: "R$ 8M - R$ 12M", currentAgency: "Interna / Performance", status: "Qualificado", opportunity: "Pós rodada histórica de R$ 855M. ERP para PMEs com foco em captação de clientes premium e CRM focado em LTV.", website: "https://www.omie.com.br" },
+            { id: 6, name: "Gr. Jereissati (Iguatemi)", industry: "Shopping Centers", region: "São Paulo", vector: "V1", revenue: "R$ 1,47 Bilhão", adSpend: "R$ 10M - R$ 15M", currentAgency: "Interna / Outras", status: "Qualificado", opportunity: "Novo CEO Ciro Zica Neto. Posicionamento premium e expansão de marcas internacionais exige comunicação institucional integrada.", website: "https://www.iguatemi.com.br" },
+            { id: 7, name: "Libbs Farmacêutica", industry: "Farmacêutico", region: "São Paulo", vector: "V1 / V2", revenue: "R$ 2,5 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Agências de nicho / CRM", status: "Qualificado", opportunity: "R$ 200M captados do BNDES. V1 para branding corporativo e V2 para jornada médica estruturada em oncologia.", website: "https://www.libbs.com.br" },
+            { id: 8, name: "SOS Mata Atlântica", industry: "ONG Ambiental", region: "São Paulo", vector: "V3", revenue: "Meta R$ 500M (proj.)", adSpend: "R$ 5M - R$ 8M", currentAgency: "Interna", status: "Qualificado", opportunity: "Aliança Mata Atlântica lançada pré-COP30. Comunicação de causa e captação ativa com grandes marcas parceiras.", website: "https://www.sosma.org.br" },
+            { id: 9, name: "WWF Brasil", industry: "ONG Ambiental", region: "São Paulo", vector: "V3", revenue: "ONG Global", adSpend: "R$ 5M - R$ 8M", currentAgency: "Interna / Causa", status: "Qualificado", opportunity: "COP30 potencializa a agenda climática global do WWF no Brasil. Captação ativa de novos parceiros corporativos.", website: "https://www.wwf.org.br" },
+            { id: 10, name: "UNICEF Brasil", industry: "ONG Internacional", region: "São Paulo", vector: "V3", revenue: "ONG Global", adSpend: "R$ 8M - R$ 12M", currentAgency: "Interna", status: "Qualificado", opportunity: "Parcerias de infância em expansão rápida. Captação ativa de novos doadores corporativos privados nacionalmente.", website: "https://www.unicef.org.br" },
+            { id: 11, name: "Omoda | Jaecoo", industry: "Automotivo/EV", region: "São Paulo", vector: "V1", revenue: "Est. R$ 500M+", adSpend: "R$ 15M - R$ 25M", currentAgency: "Interna / Performance", status: "Qualificado", opportunity: "Entrada estratégica de veículos híbridos com meta de 50k unidades. Exige brand building robusto e comunicação integrada 360.", website: "https://www.omodajaeccoo.com.br" },
+            { id: 12, name: "Eurofarma (Dermage SP)", industry: "Farmacêutico/Dermato", region: "São Paulo", vector: "V2", revenue: "R$ 150 Milhões", adSpend: "R$ 12M - R$ 18M", currentAgency: "Agência interna / Offline", status: "Qualificado", opportunity: "Expansão de canais físicos e e-commerce pós-aquisição de 60% da marca; necessidade de CRM de pacientes.", website: "https://www.eurofarma.com.br" },
+            { id: 13, name: "Care Natural Beauty", industry: "Beleza/Cosméticos", region: "São Paulo", vector: "V2", revenue: "R$ 100 Milhões", adSpend: "R$ 5M - R$ 8M", currentAgency: "Boutique de performance", status: "Qualificado", opportunity: "Entrada no varejo físico com novas lojas; demanda por fidelização omni-channel e réguas inteligentes de CRM.", website: "https://www.carenaturalbeauty.com.br" },
+            { id: 14, name: "Grupo Central", industry: "Saúde/Nutracêuticos", region: "São Paulo", vector: "V1 / V2", revenue: "R$ 120 Milhões", adSpend: "R$ 7M - R$ 11M", currentAgency: "Agência local / Offline", status: "Qualificado", opportunity: "Crescimento acelerado em nutracêuticos; necessidade de automação de CRM para relacionamento médico.", website: "https://www.grupocentral.com.br" },
+            { id: 15, name: "Ad Clinic", industry: "Saúde/Estética", region: "São Paulo", vector: "V2", revenue: "R$ 120 Milhões", adSpend: "R$ 6M - R$ 9M", currentAgency: "Godiva Propaganda / Offline", status: "Qualificado", opportunity: "Nova embaixadora nacional; gargalo de conversão local e falta de CRM integrado para franqueados.", website: "https://www.adclinic.com.br" },
+            { id: 16, name: "Vitamedic", industry: "Farmacêutico/Fitoterápico", region: "São Paulo", vector: "V1 / V2", revenue: "R$ 540 Milhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Agências regionais / Offline", status: "Qualificado", opportunity: "Reposicionamento de portfólio de fitoterápicos e suplementos; baixo investimento em canais digitais de performance.", website: "https://www.vitamedic.com.br" },
+            { id: 17, name: "Yduqs (Divisão Ibmec)", industry: "Educação Superior", region: "São Paulo", vector: "V2", revenue: "R$ 800 Milhões", adSpend: "R$ 15M - R$ 20M", currentAgency: "Cadastra / Outras", status: "Qualificado", opportunity: "Pressão por captação de alunos premium; oportunidade para atuar em réguas de conversão e nutrição de leads.", website: "https://www.ibmec.br" },
+            { id: 18, name: "Nivea Brasil (Impacto)", industry: "Beleza/FMCG", region: "São Paulo", vector: "V3", revenue: "R$ 1,2 Bilhão", adSpend: "R$ 8M - R$ 12M", currentAgency: "FCB Brasil / Master", status: "Qualificado", opportunity: "Necessidade de desdobramento de programas locais de ESG e diversidade com métricas de reputação de marca.", website: "https://www.nivea.com.br" },
+            { id: 19, name: "Sotreq (Regional SP)", industry: "Equipamentos/B2B", region: "São Paulo", vector: "V1 / V2", revenue: "R$ 1,5 Bilhão", adSpend: "R$ 8M - R$ 12M", currentAgency: "Agência interna", status: "Qualificado", opportunity: "Transição digital da venda de peças pesadas; falta de integração entre e-commerce B2B e régua de pós-venda.", website: "https://www.sotreq.com.br" },
+            { id: 20, name: "Porto Seguro SP", industry: "Seguros/Financeiro", region: "São Paulo", vector: "V2", revenue: "R$ 8 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "GUT / Master", status: "Qualificado", opportunity: "Desenvolvimento de novos canais digitais, réguas de CRM focadas em cross-selling de produtos financeiros e retenção.", website: "https://www.portoseguro.com.br" },
+
+            // RIO DE JANEIRO (RJ)
+            { id: 21, name: "Grupo Trigo", industry: "Alimentação/Food Service", region: "Rio de Janeiro", vector: "V2", revenue: "R$ 2,2 Bilhões", adSpend: "R$ 20M - R$ 30M", currentAgency: "Agências descentralizadas", status: "Qualificado", opportunity: "Desarticulação das bases de dados de franquias; necessidade de CRM matricial unificado e inteligência de dados.", website: "https://www.grupotrigo.com.br" },
+            { id: 22, name: "Dermage (HQ Rio)", industry: "Dermocosméticos", region: "Rio de Janeiro", vector: "V2", revenue: "R$ 120 Milhões", adSpend: "R$ 8M - R$ 12M", currentAgency: "Boutiques de marketing", status: "Qualificado", opportunity: "Lançamento nacional da ferramenta Skin Code; demanda por canais de retenção e e-commerce integrados pós-fusão.", website: "https://www.dermage.com.br" },
+            { id: 23, name: "Granado / Phebo", industry: "Beleza/Cosméticos", region: "Rio de Janeiro", vector: "V2", revenue: "R$ 1,8 Bilhão", adSpend: "R$ 20M - R$ 30M", currentAgency: "liveSEO / Outras", status: "Qualificado", opportunity: "Canibalização de tráfego orgânico por pagas; oportunidade de consolidação de CRM e marketing de retenção de clientes.", website: "https://www.granado.com.br" },
+            { id: 24, name: "Cedae", industry: "Saneamento", region: "Rio de Janeiro", vector: "V3", revenue: "R$ 2,1 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Agências de licitação", status: "Qualificado", opportunity: "Necessidade de posicionamento ambiental de impacto real e fortalecimento de relações de causa nas comunidades.", website: "https://www.cedae.com.br" },
+            { id: 25, name: "Bradesco Seguros (Rio)", industry: "Seguros/Financeiro", region: "Rio de Janeiro", vector: "V2", revenue: "R$ 10 Bilhões", adSpend: "R$ 12M - R$ 18M", currentAgency: "AlmapBBDO / WMcCann", status: "Qualificado", opportunity: "Ativação local de corretores; necessidade de campanhas de geração de leads geolocalizadas e réguas de CRM.", website: "https://www.bradescoseguros.com.br" },
+            { id: 26, name: "TIM Brasil (Causa)", industry: "Telecom/ESG", region: "Rio de Janeiro", vector: "V3", revenue: "R$ 15 Bilhões", adSpend: "R$ 8M - R$ 12M", currentAgency: "BETC Havas", status: "Qualificado", opportunity: "Demandas de ESG corporativo focadas em inclusão digital; agência de causa especializada requerida.", website: "https://www.tim.com.br" },
+            { id: 27, name: "Embratel (B2B)", industry: "Telecom/B2B", region: "Rio de Janeiro", vector: "V2", revenue: "R$ 5 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Agências corporativas", status: "Qualificado", opportunity: "Transição de portfólio de telecom clássico para cloud; oportunidade para estratégias de ABM e nutrição de leads B2B.", website: "https://www.embratel.com.br" },
+            { id: 28, name: "Vale (Fundação Vale)", industry: "Mineração/ESG", region: "Rio de Janeiro", vector: "V3", revenue: "R$ 50 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Agências de RP", status: "Qualificado", opportunity: "Necessidade de mensuração de impacto social e comunicação científica de projetos comunitários nas ferrovias.", website: "https://www.vale.com" },
+            { id: 29, name: "Lojas Americanas (ESG)", industry: "Varejo/ESG", region: "Rio de Janeiro", vector: "V3", revenue: "R$ 10 Bilhões", adSpend: "R$ 6M - R$ 10M", currentAgency: "WMcCann", status: "Qualificado", opportunity: "Reconstrução de reputação de marca por meio de projetos sociais reais de forte apelo comunitário regional.", website: "https://www.americanas.com.br" },
+            { id: 30, name: "Porto Seguro (Rio)", industry: "Seguros/Financeiro", region: "Rio de Janeiro", vector: "V1 / V2", revenue: "R$ 10 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "GUT / Master", status: "Qualificado", opportunity: "Demanda por engajamento de corretores locais e ativação regional de apólices residenciais e automotivas.", website: "https://www.portoseguro.com.br" },
+            { id: 31, name: "Fund. Roberto Marinho", industry: "Educação/ONG", region: "Rio de Janeiro", vector: "V3", revenue: "Grupo Globo", adSpend: "R$ 5M - R$ 8M", currentAgency: "Interna", status: "Qualificado", opportunity: "Co.liga escalando com parceiros como CCR e Itaú. Projetos educacionais demandam comunicação estruturada de causa.", website: "https://www.frm.org.br" },
+            { id: 32, name: "MSF Brasil", industry: "ONG Humanitária", region: "Rio de Janeiro", vector: "V3", revenue: "ONG Global", adSpend: "R$ 8M - R$ 12M", currentAgency: "Interna", status: "Qualificado", opportunity: "Médicos Sem Fronteiras. Necessita de campanhas de captação de recursos de alto valor recorrente e awareness de emergências.", website: "https://www.msf.org.br" },
+            { id: 33, name: "Oxfam Brasil (Rio)", industry: "ONG Internacional", region: "Rio de Janeiro", vector: "V3", revenue: "ONG Global", adSpend: "R$ 5M - R$ 8M", currentAgency: "Interna", status: "Qualificado", opportunity: "Relatórios de desigualdade com forte cobertura de mídia. Campanhas de impacto social e advocacy de ESG corporativo.", website: "https://www.oxfam.org.br" },
+            { id: 34, name: "Grupo Sendas", industry: "Varejo/Supermercados", region: "Rio de Janeiro", vector: "V2", revenue: "R$ 15 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Starcom / Interna", status: "Qualificado", opportunity: "Ativação de programas de fidelidade e ofertas de CRM customizadas para comerciantes locais no RJ.", website: "https://www.sendas.com.br" },
+            { id: 35, name: "Light S.A.", industry: "Energia/ESG", region: "Rio de Janeiro", vector: "V3", revenue: "R$ 8 Bilhões", adSpend: "R$ 8M - R$ 12M", currentAgency: "Agências de licitação", status: "Qualificado", opportunity: "Forte necessidade de posicionamento de governança, sustentabilidade e relacionamento social com as comunidades locais.", website: "https://www.light.com.br" },
+
+            // SUL (PR/SC/RS)
+            { id: 36, name: "Ademicon", industry: "Consórcios/Financeiro", region: "Sul", vector: "V1 / V2", revenue: "R$ 33,5 Bilhões", adSpend: "R$ 12M - R$ 18M", currentAgency: "GPAC / Boutique Local", status: "Qualificado", opportunity: "Consórcios e investimentos em forte aceleração. Oportunidade para estruturar projetos paralelos de CRM e automação (V2).", website: "https://www.ademicon.com.br" },
+            { id: 37, name: "Tupy (Sul)", industry: "Indústria/Metalurgia", region: "Sul", vector: "V1", revenue: "R$ 9,5 Bilhões", adSpend: "R$ 8M - R$ 12M", currentAgency: "Agências Corporativas", status: "Qualificado", opportunity: "Novo CEO Harro Burmann assume em junho/2026. Janela perfeita para propor reposicionamento institucional e relações públicas.", website: "https://www.tupy.com.br" },
+            { id: 38, name: "Coamo (Sul)", industry: "Agronegócio/Cooperativa", region: "Sul", vector: "V1", revenue: "R$ 28,7 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Interna / Regional", status: "Qualificado", opportunity: "Escala massiva de faturamento e produtividade exige comunicação institucional e trade altamente corporativa no setor agro.", website: "https://www.coamo.com.br" },
+            { id: 39, name: "C.Vale (Sul)", industry: "Agronegócio/Cooperativa", region: "Sul", vector: "V1", revenue: "R$ 25,2 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Interna / Regional", status: "Qualificado", opportunity: "Inauguração de nova esmagadora de soja e diversificação em proteínas exige comunicação integrada de portfólio.", website: "https://www.cvale.com.br" },
+            { id: 40, name: "Lar Cooperativa (Sul)", industry: "Agronegócio/Cooperativa", region: "Sul", vector: "V1", revenue: "R$ 23,2 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Interna / Regional", status: "Qualificado", opportunity: "Crescimento de receita líquida de 14.4%. Expansão de marcas próprias exige agência V1 de relevância nacional.", website: "https://www.lar.coop.br" },
+            { id: 41, name: "Copacol (Sul)", industry: "Agronegócio/Cooperativa", region: "Sul", vector: "V1", revenue: "R$ 11,1 Bilhões", adSpend: "R$ 8M - R$ 12M", currentAgency: "Interna / Regional", status: "Qualificado", opportunity: "Presença em 85 países de exportação. Necessidade de CRM de canais internacionais e trade marketing robusto.", website: "https://www.copacol.com.br" },
+            { id: 42, name: "Frimesa (Sul)", industry: "Alimentos/Cooperativa", region: "Sul", vector: "V1", revenue: "R$ 7,04 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Regional / Varejo", status: "Qualificado", opportunity: "Agregação de marcas alimentares de 5 cooperativas. Demanda urgente por consolidação e brand equity nacional.", website: "https://www.frimesa.com.br" },
+            { id: 43, name: "Docol (Sul)", industry: "Construção/Metais", region: "Sul", vector: "V1", revenue: "R$ 1,5 Bilhão", adSpend: "R$ 8M - R$ 12M", currentAgency: "Agência Regional", status: "Qualificado", opportunity: "Meta passar de R$ 800M para R$ 2bi até 2028. Aquisição da Franke e nova fábrica. Exige comunicação integrada 360°.", website: "https://www.docol.com.br" },
+            { id: 44, name: "Unicesumar (Vitru)", industry: "Educação Superior EAD", region: "Sul", vector: "V2", revenue: "R$ 2,2 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Interna / Performance", status: "Qualificado", opportunity: "Base de 915k alunos ativos em EAD. Mitigação de churn e aumento do LTV através de CRM e canais automatizados.", website: "https://www.unicesumar.edu.br" },
+            { id: 45, name: "Intelbras (Sul)", industry: "Tecnologia/Segurança", region: "Sul", vector: "V2", revenue: "R$ 4,5 Bilhões", adSpend: "R$ 25M - R$ 30M", currentAgency: "anacouto / Cadastra", status: "Qualificado", opportunity: "Lançamento de IA de monitoramento técnico; necessidade de integrar a robusta rede de 280 mil instaladores via CRM.", website: "https://www.intelbras.com.br" },
+            { id: 46, name: "Hospital Pequeno Príncipe", industry: "Saúde/Filantropia", region: "Sul", vector: "V3", revenue: "Hospital Filantrópico", adSpend: "R$ 5M - R$ 8M", currentAgency: "Interna / Offline", status: "Qualificado", opportunity: "Necessidade de estruturar captação em escala e narrativas de causa em projetos incentivados (V4 Branded Content).", website: "https://www.pequenoprincipe.org.br" },
+            { id: 47, name: "Muffato (Sul)", industry: "Varejo/Supermercados", region: "Sul", vector: "V2", revenue: "R$ 6,5 Bilhões", adSpend: "R$ 15M - R$ 22M", currentAgency: "Agência Varejo Local", status: "Qualificado", opportunity: "Otimização de CRM para o clube de benefícios físico-digital 'Crediffato' visando retention em massa.", website: "https://www.supermuffato.com.br" },
+            { id: 48, name: "Tramontina (Sul)", industry: "Utilidades Domésticas", region: "Sul", vector: "V2", revenue: "R$ 8 Bilhões", adSpend: "R$ 12M - R$ 18M", currentAgency: "Agência Interna", status: "Qualificado", opportunity: "Otimização do canal de e-commerce D2C e orquestração de réguas inteligentes de CRM pós-venda.", website: "https://www.tramontina.com.br" },
+            { id: 49, name: "Asaas (Sul)", industry: "Fintech", region: "Sul", vector: "V2", revenue: "R$ 339,5 Milhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Boutique de performance", status: "Qualificado", opportunity: "Aporte recente de R$ 820M. Demanda por réguas avançadas de CRM, automações complexas e retenção focado em LTV.", website: "https://www.asaas.com" },
+            { id: 50, name: "Herbarium (Sul)", industry: "Farmacêutico/Fitoterápico", region: "Sul", vector: "V2", revenue: "R$ 450 Milhões", adSpend: "R$ 12M - R$ 18M", currentAgency: "Agência de nicho", status: "Qualificado", opportunity: "Expansão rápida em fitoterápicos e cannabis medicinal; demanda por CRM para educação e prescrição médica.", website: "https://www.herbarium.com.br" },
+
+            // NORDESTE
+            { id: 51, name: "M. Dias Branco (Nordeste)", industry: "Alimentos/FMCG", region: "Nordeste", vector: "V1 / V2", revenue: "R$ 10 Bilhões", adSpend: "R$ 20M - R$ 30M", currentAgency: "CP+B (Contrato 360)", status: "Descartado", opportunity: "CONTA OCUPADA. CP+B assumiu criação, social media, mídia on e off e gestão 360° das principais marcas em Jan/2026. Descartado por contrato recente.", website: "https://www.mdiasbranco.com.br" },
+            { id: 52, name: "Grupo Edson Queiroz", industry: "Gás/Bebidas/Diversificado", region: "Nordeste", vector: "V1 / V2", revenue: "R$ 3 Bilhões", adSpend: "R$ 15M - R$ 22M", currentAgency: "Agências regionais", status: "Qualificado", opportunity: "Inauguração de canais de assinatura de águas Minalba; exige geolocalização e automação de CRM integrado.", website: "https://www.geq.com.br" },
+            { id: 53, name: "Banese (Nordeste)", industry: "Banco/Financeiro", region: "Nordeste", vector: "V2", revenue: "R$ 800 Milhões", adSpend: "R$ 10M - R$ 14M", currentAgency: "Agências públicas", status: "Qualificado", opportunity: "Banco estadual focando em digitalização; gargalos em canais automatizados de relacionamento mobile.", website: "https://www.banese.com.br" },
+            { id: 54, name: "Coelba (Neoenergia Bahia)", industry: "Energia/ESG", region: "Nordeste", vector: "V3", revenue: "R$ 10 Bilhões", adSpend: "R$ 12M - R$ 16M", currentAgency: "Agências de licitação", status: "Qualificado", opportunity: "Necessidade de campanhas sociais de impacto focado em sustentabilidade e consumo consciente de energia.", website: "https://www.neoenergiacoelba.com.br" },
+            { id: 55, name: "Chesf (Nordeste)", industry: "Energia/Governamental", region: "Nordeste", vector: "V3", revenue: "R$ 5 Bilhões", adSpend: "R$ 8M - R$ 12M", currentAgency: "Assessorias corporativas", status: "Qualificado", opportunity: "Estruturação de novas narrativas de transição energética justa e mitigação de crises hídricas locais.", website: "https://www.chesf.gov.br" },
+            { id: 56, name: "São Luís Shopping", industry: "Varejo/Shopping", region: "Nordeste", vector: "V1 / V2", revenue: "R$ 150 Milhões", adSpend: "R$ 5M - R$ 8M", currentAgency: "Pequenas agências", status: "Qualificado", opportunity: "Conexão de dados de fluxo físico com remarketing e campanhas personalizadas para os lojistas parceiros.", website: "https://www.saoluisshopping.com" },
+            { id: 57, name: "Iguatemi Fortaleza", industry: "Real Estate/Shopping", region: "Nordeste", vector: "V2", revenue: "R$ 400 Milhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Agência de varejo local", status: "Qualificado", opportunity: "Refinamento e automação das réguas de relacionamento de alto padrão via CRM especializado.", website: "https://www.iguatemi.com.br/fortaleza" },
+            { id: 58, name: "Amway Nutrilite (CE)", industry: "Nutrição/ESG", region: "Nordeste", vector: "V3", revenue: "R$ 160 Milhões", adSpend: "R$ 8M - R$ 12M", currentAgency: "Equipe interna", status: "Qualificado", opportunity: "Posicionamento estratégico de bioeconomia sustentável na maior fazenda de acerola orgânica do mundo.", website: "https://www.amway.com.br" },
+            { id: 59, name: "Mercado São Luiz", industry: "Varejo/Supermercados", region: "Nordeste", vector: "V1", revenue: "R$ 1,84 Bilhão", adSpend: "R$ 8M - R$ 12M", currentAgency: "Agência Regional", status: "Qualificado", opportunity: "Campanha histórica do Centenário exige branding nacional integrado e novos canais de mídia.", website: "https://www.saoluissupermercados.com.br" },
+            { id: 60, name: "Grupo J. Macedo", industry: "Alimentos/FMCG", region: "Nordeste", vector: "V1 / V2", revenue: "R$ 2,5 Bilhões", adSpend: "R$ 12M - R$ 18M", currentAgency: "Agências regionais", status: "Qualificado", opportunity: "Expansão de marcas do setor alimentício exige consolidação de marcas próprias e régua de CRM comercial.", website: "https://www.jmacedo.com.br" },
+
+            // CENTRO-OESTE
+            { id: 61, name: "Amaggi (Sustentabilidade)", industry: "Agronegócio/ESG", region: "Centro-Oeste", vector: "V3", revenue: "R$ 20 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Agências agrícolas", status: "Qualificado", opportunity: "Pressão corporativa por metas de descarbonização; campanhas focadas em rastreabilidade de soja e ESG.", website: "https://www.amaggi.com.br" },
+            { id: 62, name: "BrasilAgro (Centro-Oeste)", industry: "Agronegócio", region: "Centro-Oeste", vector: "V1 / V2", revenue: "R$ 1,23 Bilhão", adSpend: "R$ 6M - R$ 9M", currentAgency: "Agência de nicho", status: "Watch", opportunity: "Faturamento dentro do ICP mas perfil muito B2B/institucional. Investimento em mídia provavelmente baixo.", website: "https://www.brasil-agro.com" },
+            { id: 63, name: "Minerthal (CO)", industry: "Agronegócio/Insumos", region: "Centro-Oeste", vector: "V1 / V2", revenue: "R$ 180 Milhões", adSpend: "R$ 5M - R$ 8M", currentAgency: "Agência agrícola offline", status: "Qualificado", opportunity: "Lançamento de suplementos de alta tecnologia; exige CRM robusto para integração de representantes.", website: "https://www.minerthal.com.br" },
+            { id: 64, name: "Saneago", industry: "Saneamento/ESG", region: "Centro-Oeste", vector: "V3", revenue: "R$ 2 Bilhões", adSpend: "R$ 10M - R$ 14M", currentAgency: "Agências públicas", status: "Qualificado", opportunity: "Projetos de conservação ambiental de bacias e segurança hídrica demandam campanhas institucionais estruturadas.", website: "https://www.saneago.com.br" },
+            { id: 65, name: "Grupo Petrópolis (CO)", industry: "Bebidas/FMCG", region: "Centro-Oeste", vector: "V1 / V2", revenue: "R$ 10 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Agência Master", status: "Qualificado", opportunity: "Necessidade de ativação tática regional e geo-ads de conversão de PDV no interior do Centro-Oeste.", website: "https://www.grupopetropolis.com.br" },
+            { id: 66, name: "Embrapa (Causa)", industry: "Pesquisa/Governamental", region: "Centro-Oeste", vector: "V3", revenue: "Autarquia", adSpend: "R$ 10M - R$ 15M", currentAgency: "Agências públicas", status: "Qualificado", opportunity: "Tradução de dados científicos de agronegócio e agricultura sustentável em narrativas de impacto real de causa.", website: "https://www.embrapa.br" },
+            { id: 67, name: "Nutrien Ag Solutions (CO)", industry: "Agronegócio/Insumos", region: "Centro-Oeste", vector: "V1 / V2", revenue: "R$ 4 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Trade/Interno", status: "Qualificado", opportunity: "Reestruturação comercial foca em barter e insumos proprietários. Exige CRM de retenção agrícola.", website: "https://br.linkedin.com/company/nutrienbr" },
+            { id: 68, name: "JBS (Friboi CO)", industry: "Alimentos/Proteínas", region: "Centro-Oeste", vector: "V2", revenue: "R$ 30 Bilhões", adSpend: "R$ 20M - R$ 30M", currentAgency: "Lew'Lara/TBWA", status: "Qualificado", opportunity: "Demanda por CRM de alta fidelidade e automatização inteligente de canais de relacionamento de varejo indireto B2B.", website: "https://www.jbs.com.br" },
+
+            // NORTE E WATCH LIST
+            { id: 69, name: "Samsung Amazônia", industry: "Tecnologia/Eletroeletrônicos", region: "Norte", vector: "V3", revenue: "R$ 20 Bilhões", adSpend: "R$ 15M - R$ 25M", currentAgency: "Leo Burnett / Cheil", status: "Qualificado", opportunity: "Criação de programas de segurança e preservação na Zona Franca; foco em educação tecnológica local.", website: "https://www.samsung.com.br" },
+            { id: 70, name: "Moto Honda da Amazônia", industry: "Automotivo/Mobilidade", region: "Norte", vector: "V3", revenue: "R$ 15 Bilhões", adSpend: "R$ 10M - R$ 15M", currentAgency: "Publicis Brasil", status: "Qualificado", opportunity: "Iniciativas robustas de trânsito seguro e sustentabilidade na floresta requerem agência de causa especializada.", website: "https://www.honda.com.br" },
+            { id: 71, name: "Eletronorte (Norte)", industry: "Energia/Governamental", region: "Norte", vector: "V3", revenue: "R$ 8 Bilhões", adSpend: "R$ 10M - R$ 14M", currentAgency: "Agências públicas", status: "Qualificado", opportunity: "Projetos de energia renovável na Amazônia exigem comunicação de impacto transparente com a comunidade.", website: "https://www.eletronorte.gov.br" },
+            
+            { id: 72, name: "PIER", industry: "Insurtech", region: "São Paulo", vector: "V2", revenue: "R$ 250 Milhões", adSpend: "R$ 5M - R$ 8M", currentAgency: "Interna / Digital", status: "Watch", opportunity: "Insurtech acelerada com forte investimento de tecnologia em IA. Ideal para estratégias de dados, LTV e CRM.", website: "https://www.pier.digital" },
+            { id: 73, name: "Le Biscuit", industry: "Varejo/Casa", region: "Nordeste", vector: "V1 / V2", revenue: "R$ 3 Bilhões (Fusão)", adSpend: "R$ 12M - R$ 18M", currentAgency: "Agências Locais", status: "Watch", opportunity: "Integração pós-fusão com Casa & Video. Reestruturação de canais digitais e CRM de fidelidade.", website: "https://www.lebiscuit.com.br" }
+        ];
+
+        let filteredList = [...companies];
+        let selectedCompany = null;
+        let currentAITab = 'outreach';
+        let deleteTargetId = null;
+
+        // Inicialização
+        window.onload = function() {
+            populateIndustryFilter();
+            applyFilters();
+            updateDashboardMetrics();
+        }
+
+        // Popula filtro de indústrias de forma única e dinâmica
+        function populateIndustryFilter() {
+            const indFilter = document.getElementById('industry-filter');
+            const industries = [...new Set(companies.map(c => c.industry))].sort();
+            
+            industries.forEach(ind => {
+                const opt = document.createElement('option');
+                opt.value = ind;
+                opt.innerText = ind;
+                indFilter.appendChild(opt);
+            });
+        }
+
+        // Renderização da tabela com design moderno e clique interativo
+        function renderTable() {
+            const tbody = document.getElementById('company-table-body');
+            tbody.innerHTML = '';
+
+            if (filteredList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="12" class="py-8 text-center text-slate-400">
+                            <i class="fa-solid fa-folder-open text-4xl mb-3 block"></i>
+                            Nenhuma conta encontrada com os filtros selecionados.
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('showing-count').innerText = `Mostrando 0 de ${companies.length} empresas`;
+                return;
+            }
+
+            filteredList.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-offwhite-100 transition-colors group cursor-pointer border-b border-slate-200";
+                tr.onclick = () => openAIDrawer(c);
+                
+                // Classificação visual de cores para vetores de atuação
+                let vectorBadgeColor = "bg-slate-100 text-slate-800";
+                if(c.vector.includes("V2")) {
+                    vectorBadgeColor = "bg-magenta-50 text-magenta-500 border-magenta-100";
+                } else if(c.vector.includes("V3")) {
+                    vectorBadgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200/50";
+                } else if(c.vector.includes("V1")) {
+                    vectorBadgeColor = "bg-purple-50 text-purple-700 border-purple-200/50";
+                }
+
+                // Badge de status do ICP (Qualificado, Watch ou Descartado)
+                let statusBadgeColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                if(c.status === "Watch") {
+                    statusBadgeColor = "bg-amber-100 text-amber-800 border-amber-200";
+                } else if(c.status === "Descartado") {
+                    statusBadgeColor = "bg-red-100 text-red-800 border-red-200";
+                }
+
+                tr.innerHTML = `
+                    <td class="py-4 px-4 text-center font-bold text-slate-400 text-xs">${c.id}</td>
+                    <td class="py-4 px-4 font-bold text-carbon-900 group-hover:text-magenta-500 transition-colors">${c.name}</td>
+                    <td class="py-4 px-4">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold border px-2 py-0.5 rounded-full ${statusBadgeColor}">
+                            ${c.status === 'Qualificado' ? '🟢 ' + c.status : c.status === 'Watch' ? '🟡 ' + c.status : '🔴 ' + c.status}
+                        </span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+                            <i class="fa-solid fa-industry text-slate-400"></i> ${c.industry}
+                        </span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded-md">
+                            <i class="fa-solid fa-location-dot text-slate-400"></i> ${c.region}
+                        </span>
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <span class="inline-flex text-xs font-bold border px-2 py-1 rounded-md ${vectorBadgeColor}">
+                            ${c.vector}
+                        </span>
+                    </td>
+                    <td class="py-4 px-4 text-slate-600 font-medium">${c.revenue}</td>
+                    <td class="py-4 px-4 text-slate-600 font-bold">${c.adSpend}</td>
+                    <td class="py-4 px-4" onclick="event.stopPropagation()">
+                        <a href="${c.website}" target="_blank" class="text-xs text-magenta-500 hover:text-magenta-700 font-semibold flex items-center gap-1 underline">
+                            <i class="fa-solid fa-earth-americas"></i> Abrir Site
+                        </a>
+                    </td>
+                    <td class="py-4 px-4 text-xs text-slate-500 font-medium">${c.currentAgency}</td>
+                    <td class="py-4 px-4 text-xs text-slate-600 leading-relaxed max-w-sm truncate group-hover:text-clip group-hover:whitespace-normal" title="${c.opportunity}">
+                        ${c.opportunity}
+                    </td>
+                    <td class="py-4 px-4 text-right whitespace-nowrap" onclick="event.stopPropagation()">
+                        <div class="flex items-center justify-end space-x-1.5">
+                            <button onclick="editCompany(${c.id})" class="p-2 text-slate-400 hover:text-magenta-500 hover:bg-magenta-50 rounded-lg transition-all" title="Editar">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="requestDeleteCompany(${c.id})" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Excluir">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('showing-count').innerText = `Mostrando ${filteredList.length} de ${companies.length} empresas`;
+        }
+
+        // Helper para checar se está no perfil do ICP
+        function checkIdeal(verba, faturamento) {
+            let vb = verba.toLowerCase();
+            let fat = faturamento.toLowerCase();
+            if (vb.includes('20m') || vb.includes('15m') || vb.includes('12m') || vb.includes('10m') || vb.includes('25m')) {
+                if (fat.includes('bilhão') || fat.includes('bilhões') || fat.includes('bi')) {
+                    return "Sim";
+                }
+                if (fat.includes('milhões') || fat.includes('milhão')) {
+                    let num = parseFloat(faturamento.replace(/[^0-9,.]/g, '').replace(',', '.'));
+                    if (!isNaN(num) && num >= 100) return "Sim";
+                }
+                return "Sim";
+            }
+            if (vb.includes('5m') || vb.includes('6m') || vb.includes('7m')) {
+                return "Borderline";
+            }
+            return "Sim";
+        }
+
+        // Mapeamento manual estruturado de Indústrias para agrupamento estratégico no Excel
+        const industryGrouping = {
+            "Agronegócio & Cooperativas": ["Coamo (Sul)", "C.Vale (Sul)", "Lar Cooperativa (Sul)", "Copacol (Sul)", "Amaggi (Sustentabilidade)", "BrasilAgro (Centro-Oeste)", "Minerthal (CO)", "Nutrien Ag Solutions (CO)"],
+            "Saúde, Farmacêutico & Estética": ["Biolab (Biolab & Co.)", "Libbs Farmacêutica", "Eurofarma (Dermage SP)", "Grupo Central", "Ad Clinic", "Vitamedic", "Herbarium (Sul)", "Hospital Pequeno Príncipe"],
+            "SaaS, Fintech & Tecnologia": ["Onfly", "Omie", "Asaas (Sul)", "Intelbras (Sul)", "PIER"],
+            "ONG, Terceiro Setor & Governamental": ["SOS Mata Atlântica", "WWF Brasil", "UNICEF Brasil", "Fund. Roberto Marinho", "MSF Brasil", "Oxfam Brasil (Rio)", "Cedae", "Light S.A.", "Saneago", "Embrapa (Causa)", "Eletronorte (Norte)"],
+            "Varejo, Moda & Bens de Consumo": ["Gr. Guararapes (Riachuelo)", "Gr. Jereissati (Iguatemi)", "Care Natural Beauty", "Nivea Brasil (Impacto)", "Grupo Sendas", "Lojas Americanas (ESG)", "Muffato (Sul)", "Tramontina (Sul)", "São Luís Shopping", "Iguatemi Fortaleza", "Mercado São Luiz", "Le Biscuit"],
+            "Alimentos & Bebidas": ["Piracanjuba", "Frimesa (Sul)", "Grupo Trigo", "M. Dias Branco (Nordeste)", "Grupo Edson Queiroz", "Grupo J. Macedo", "Grupo Petrópolis (CO)", "JBS (Friboi CO)", "Amway Nutrilite (CE)"],
+            "Finanças, Consórcios & Seguros": ["Porto Seguro SP", "Bradesco Seguros (Rio)", "Porto Seguro (Rio)", "Ademicon", "Banese (Nordeste)"],
+            "Educação & Telecom": ["Yduqs (Divisão Ibmec)", "TIM Brasil (Causa)", "Embratel (B2B)", "Unicesumar (Vitru)"],
+            "Indústria, Metalurgia, Construção & Outros": ["Sotreq (Regional SP)", "Vale (Fundação Vale)", "Tupy (Sul)", "Docol (Sul)", "Omoda | Jaecoo", "Samsung Amazônia", "Moto Honda da Amazônia"]
+        };
+
+        // Exportação para Excel nativo com xlsx-js-style (Rosa Magenta, Preto, Off-white) e Hiperlinks
+        function exportToExcel() {
+            if (filteredList.length === 0) {
+                showToast("Aviso", "Não há empresas na lista atual para exportar.", true);
+                return;
+            }
+
+            try {
+                // --- TABELA 1: CONTAS DO ICP ---
+                const headers = ["ID Único", "Empresa / Target", "Qualificação", "Indústria", "Região Geográfica", "Vetor Comercial", "Faturamento Estimado", "Verba Anual de Mídia", "Website / URL", "Agência Atual", "Oportunidade de Trabalho"];
+                const data = filteredList.map(c => [
+                    c.id, c.name, c.status, c.industry, c.region, c.vector, c.revenue, c.adSpend, c.website, c.currentAgency, c.opportunity
+                ]);
+
+                const ws_data = [
+                    ["REPENSE BUSINESS DEVELOPMENT HUB - MAPEAMENTO DE CONTAS ICP 2026"],
+                    ["Documento de Inteligência Comercial e Planejamento Estratégico - Confidential"],
+                    ["Filtro ativo: " + (document.getElementById('region-filter').value) + " | " + (document.getElementById('vector-filter').value)],
+                    [], 
+                    headers,
+                    ...data
+                ];
+
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+                // Configurações de Estilo Repense
+                const styleTitle = {
+                    font: { name: "Segoe UI", size: 14, bold: true, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "0B0B0C" } }, // Preto Carbono
+                    alignment: { vertical: "center", horizontal: "center" }
+                };
+
+                const styleSub = {
+                    font: { name: "Segoe UI", size: 10, italic: true, color: { rgb: "E3007E" } }, // Rosa Magenta
+                    fill: { fgColor: { rgb: "FAF9FA" } }, // Off-white
+                    alignment: { vertical: "center", horizontal: "center" }
+                };
+
+                const styleHeader = {
+                    font: { name: "Segoe UI", size: 11, bold: true, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "E3007E" } }, // Rosa Magenta
+                    alignment: { vertical: "center", horizontal: "center", wrapText: true },
+                    border: {
+                        top: { style: "thin", color: { rgb: "CCCCCC" } },
+                        bottom: { style: "medium", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "CCCCCC" } },
+                        right: { style: "thin", color: { rgb: "CCCCCC" } }
+                    }
+                };
+
+                const styleZebraEven = {
+                    font: { name: "Segoe UI", size: 10 },
+                    fill: { fgColor: { rgb: "FAF9FA" } },
+                    border: {
+                        top: { style: "thin", color: { rgb: "E5E7EB" } },
+                        bottom: { style: "thin", color: { rgb: "E5E7EB" } },
+                        left: { style: "thin", color: { rgb: "E5E7EB" } },
+                        right: { style: "thin", color: { rgb: "E5E7EB" } }
+                    }
+                };
+
+                const styleZebraOdd = {
+                    font: { name: "Segoe UI", size: 10 },
+                    fill: { fgColor: { rgb: "FFFFFF" } },
+                    border: {
+                        top: { style: "thin", color: { rgb: "E5E7EB" } },
+                        bottom: { style: "thin", color: { rgb: "E5E7EB" } },
+                        left: { style: "thin", color: { rgb: "E5E7EB" } },
+                        right: { style: "thin", color: { rgb: "E5E7EB" } }
+                    }
+                };
+
+                // Mergindo cabeçalhos
+                ws['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
+                    { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } },
+                    { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } }
+                ];
+
+                // Varredura de células: estilos e inserção dos hiperlinks clicáveis
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellRef = XLSX.utils.encode_cell({ c: C, r: R });
+                        if (!ws[cellRef]) continue;
+
+                        if (R === 0) {
+                            ws[cellRef].s = styleTitle;
+                        } else if (R === 1 || R === 2) {
+                            ws[cellRef].s = styleSub;
+                        } else if (R === 4) {
+                            ws[cellRef].s = styleHeader;
+                        } else if (R > 4) {
+                            const isEven = (R % 2 === 0);
+                            const baseStyle = isEven ? styleZebraEven : styleZebraOdd;
+                            
+                            // Detecção de hiperlink dinâmico na coluna do Website (Coluna C = 8)
+                            if (C === 8) {
+                                const url = ws[cellRef].v;
+                                ws[cellRef].l = { Target: url, Tooltip: "Clique para acessar o site institucional" };
+                                ws[cellRef].s = {
+                                    ...baseStyle,
+                                    font: { name: "Segoe UI", size: 10, color: { rgb: "E3007E" }, underline: true }, // Rosa Magenta sublinhado
+                                    alignment: { vertical: "center", horizontal: "center" }
+                                };
+                            } else {
+                                let align = "left";
+                                if (C === 0 || C === 2 || C === 5) align = "center";
+                                ws[cellRef].s = {
+                                    ...baseStyle,
+                                    alignment: { vertical: "center", horizontal: align, wrapText: true }
+                                };
+                            }
+                        }
+                    }
+                }
+
+                ws['!cols'] = [
+                    { wch: 8 }, { wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 22 }, { wch: 22 }, { wch: 25 }, { wch: 25 }, { wch: 50 }
+                ];
+
+                ws['!rows'] = [];
+                ws['!rows'][0] = { hpt: 30 };
+                ws['!rows'][1] = { hpt: 20 };
+                ws['!rows'][4] = { hpt: 25 };
+
+                // --- TABELA 2: ANÁLISE POR INDÚSTRIA (Aba Requerida!) ---
+                const wsIndustry_data = [
+                    ["REPENSE BUSINESS DEVELOPMENT HUB - ANÁLISE CORPORATIVA POR INDÚSTRIA"],
+                    ["Mapeamento Setorial e Alinhamento por Squads Temáticas"],
+                    [],
+                ];
+
+                // Agrupando dinamicamente as contas nos setores mapeados
+                Object.keys(industryGrouping).forEach(sector => {
+                    wsIndustry_data.push([sector.toUpperCase(), "", "", "", "", ""]); // Header do Setor
+                    wsIndustry_data.push(["Empresa", "Região", "Faturamento", "Verba de Mídia", "Vetor", "Website"]); // Header de colunas do Setor
+                    
+                    const matches = filteredList.filter(c => industryGrouping[sector].includes(c.name) || c.industry.toLowerCase().includes(sector.split(' ')[0].toLowerCase()));
+                    if (matches.length === 0) {
+                        wsIndustry_data.push(["Nenhuma conta mapeada nesta seleção de filtros.", "", "", "", "", ""]);
+                    } else {
+                        matches.forEach(m => {
+                            wsIndustry_data.push([m.name, m.region, m.revenue, m.adSpend, m.vector, m.website]);
+                        });
+                    }
+                    wsIndustry_data.push([]); // Espaçador
+                });
+
+                const wsIndustry = XLSX.utils.aoa_to_sheet(wsIndustry_data);
+
+                // Estilização da Aba de Indústrias
+                wsIndustry['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+                    { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }
+                ];
+
+                const rInd = XLSX.utils.decode_range(wsIndustry['!ref']);
+                let currentMergingStart = 0;
+
+                for (let R = rInd.s.r; R <= rInd.e.r; ++R) {
+                    for (let C = rInd.s.c; C <= rInd.e.c; ++C) {
+                        const cellRef = XLSX.utils.encode_cell({ c: C, r: R });
+                        if (!wsIndustry[cellRef]) continue;
+
+                        if (R === 0) {
+                            wsIndustry[cellRef].s = styleTitle;
+                        } else if (R === 1) {
+                            wsIndustry[cellRef].s = styleSub;
+                        } else if (wsIndustry[cellRef].v && Object.keys(industryGrouping).map(k => k.toUpperCase()).includes(wsIndustry[cellRef].v.toString())) {
+                            // Header do Setor (Preto Carbono)
+                            wsIndustry[cellRef].s = {
+                                font: { name: "Segoe UI", size: 11, bold: true, color: { rgb: "FFFFFF" } },
+                                fill: { fgColor: { rgb: "0B0B0C" } },
+                                alignment: { vertical: "center", horizontal: "left" }
+                            };
+                            if (C === 0) {
+                                wsIndustry['!merges'].push({ s: { r: R, c: 0 }, e: { r: R, c: 5 } });
+                            }
+                        } else if (wsIndustry[cellRef].v === "Empresa") {
+                            // Sub-header de Colunas (Rosa Magenta)
+                            wsIndustry[cellRef].s = {
+                                font: { name: "Segoe UI", size: 10, bold: true, color: { rgb: "FFFFFF" } },
+                                fill: { fgColor: { rgb: "E3007E" } },
+                                alignment: { vertical: "center", horizontal: "left" }
+                            };
+                        } else if (R > 2) {
+                            // Dados das Empresas
+                            const isEven = (R % 2 === 0);
+                            const baseStyle = isEven ? styleZebraEven : styleZebraOdd;
+                            
+                            if (C === 5 && wsIndustry[cellRef].v && wsIndustry[cellRef].v.toString().startsWith("http")) {
+                                const url = wsIndustry[cellRef].v;
+                                wsIndustry[cellRef].l = { Target: url, Tooltip: "Acessar Site" };
+                                wsIndustry[cellRef].s = {
+                                    ...baseStyle,
+                                    font: { name: "Segoe UI", size: 9, color: { rgb: "E3007E" }, underline: true },
+                                    alignment: { vertical: "center", horizontal: "left" }
+                                };
+                            } else {
+                                wsIndustry[cellRef].s = {
+                                    ...baseStyle,
+                                    alignment: { vertical: "center", horizontal: "left" }
+                                };
+                            }
+                        }
+                    }
+                }
+
+                wsIndustry['!cols'] = [
+                    { wch: 30 }, { wch: 15 }, { wch: 22 }, { wch: 22 }, { wch: 12 }, { wch: 30 }
+                ];
+
+                // --- TABELA 3: RESUMO EXECUTIVO ---
+                const wsSummary_data = [
+                    ["REPENSE BUSINESS DEVELOPMENT HUB - RESUMO EXECUTIVO ICP 2026"],
+                    [],
+                    ["Métrica", "Valor do Funil", "Nota / Status de Prospecção"],
+                    ["TOTAL DE CONTAS MAPEADAS", filteredList.length.toString(), "Base total ativa higienizada para Q3"],
+                    ["QUALIFICADAS (🟢)", filteredList.filter(c => c.status === "Qualificado").length.toString(), "Empresas com verba ativa no range Repense"],
+                    ["WATCH LIST (🟡)", filteredList.filter(c => c.status === "Watch").length.toString(), "Acompanhamento tático do timing orçamentário"],
+                    ["DESCARTADAS (🔴)", filteredList.filter(c => c.status === "Descartado").length.toString(), "Contratos já assinados recentemente com concorrentes"],
+                    [],
+                    ["Segmentação por Vetor Comercial"],
+                    ["V1 — Agência Integrada 360", filteredList.filter(c => c.vector === "V1").length.toString() + " contas", "Campanhas nacionais, branding e posições institucionais"],
+                    ["V2 — CRM, Digital e Performance", filteredList.filter(c => c.vector === "V2").length.toString() + " contas", "Jornadas, LTV, arquiteturas proprietárias e conversão"],
+                    ["V3 — Marketing de Causa", filteredList.filter(c => c.vector === "V3").length.toString() + " contas", "ESG corporativo, sustentabilidade e impacto mensurável"],
+                    ["Múltiplos Vetores (V1/V2 ou V1/V3)", filteredList.filter(c => c.vector.includes("/")).length.toString() + " contas", "Oportunidades de entrada casada e cross-selling"],
+                    [],
+                    ["Segmentação Regional"],
+                    ["São Paulo (SP)", filteredList.filter(c => c.region === "São Paulo").length.toString() + " contas", "Hub principal com maior faturamento e head de mídia"],
+                    ["Rio de Janeiro (RJ)", filteredList.filter(c => c.region === "Rio de Janeiro").length.toString() + " contas", "Forte no terceiro setor, governos locais e energia"],
+                    ["Região Sul (PR/SC/RS)", filteredList.filter(c => c.region === "Sul").length.toString() + " contas", "Polo de cooperativas de agronegócio e manufatura"],
+                    ["Região Nordeste", filteredList.filter(c => c.region === "Nordeste").length.toString() + " contas", "Varejo estruturado e marcas alimentícias tradicionais"],
+                    ["Região Centro-Oeste", filteredList.filter(c => c.region === "Centro-Oeste").length.toString() + " contas", "Gigantes de grãos e pecuária com forte agenda ESG"],
+                    ["Região Norte", filteredList.filter(c => c.region === "Norte").length.toString() + " contas", "Pólo da Zona Franca e desdobramentos pré-COP30"]
+                ];
+
+                const wsSummary = XLSX.utils.aoa_to_sheet(wsSummary_data);
+
+                // Estilo da Folha de Resumo
+                wsSummary['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }
+                ];
+
+                const rSummary = XLSX.utils.decode_range(wsSummary['!ref']);
+                for (let R = rSummary.s.r; R <= rSummary.e.r; ++R) {
+                    for (let C = rSummary.s.c; C <= rSummary.e.c; ++C) {
+                        const cellRef = XLSX.utils.encode_cell({ c: C, r: R });
+                        if (!wsSummary[cellRef]) continue;
+
+                        if (R === 0) {
+                            wsSummary[cellRef].s = styleTitle;
+                        } else if (R === 2) {
+                            wsSummary[cellRef].s = styleHeader;
+                        } else if (wsSummary_data[R] && (wsSummary_data[R][0] === "Segmentação por Vetor Comercial" || wsSummary_data[R][0] === "Segmentação Regional")) {
+                            wsSummary[cellRef].s = {
+                                font: { name: "Segoe UI", size: 11, bold: true, color: { rgb: "FFFFFF" } },
+                                fill: { fgColor: { rgb: "0B0B0C" } },
+                                alignment: { vertical: "center", horizontal: "left" }
+                            };
+                        } else if (R > 2 && wsSummary_data[R] && wsSummary_data[R][0]) {
+                            const isEven = (R % 2 === 0);
+                            wsSummary[cellRef].s = isEven ? styleZebraEven : styleZebraOdd;
+                            if (C === 1) {
+                                wsSummary[cellRef].s = {
+                                    ...(isEven ? styleZebraEven : styleZebraOdd),
+                                    font: { name: "Segoe UI", size: 10, bold: true, color: { rgb: "E3007E" } },
+                                    alignment: { vertical: "center", horizontal: "center" }
+                                };
+                            }
+                        }
+                    }
+                }
+
+                wsSummary['!cols'] = [
+                    { wch: 35 }, { wch: 15 }, { wch: 45 }
+                ];
+
+                // Append das 3 Abas solicitadas
+                XLSX.utils.book_append_sheet(wb, ws, "ICP Target Accounts");
+                XLSX.utils.book_append_sheet(wb, wsIndustry, "Análise por Indústria");
+                XLSX.utils.book_append_sheet(wb, wsSummary, "Resumo Executivo");
+                
+                XLSX.writeFile(wb, "Mapeamento_ICP_Repense_2026.xlsx");
+                showToast("Sucesso", `Exportados ${filteredList.length} registros customizados com sucesso!`);
+            } catch (error) {
+                showToast("Erro ao Exportar", "Falha técnica na compilação do arquivo Excel.", true);
+                console.error(error);
+            }
+        }
+
+        // Aplicação de filtros cruzados avançados
+        function applyFilters() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const regionFilter = document.getElementById('region-filter').value;
+            const industryFilter = document.getElementById('industry-filter').value;
+            const vectorFilter = document.getElementById('vector-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+
+            filteredList = companies.filter(c => {
+                const matchesSearch = c.name.toLowerCase().includes(searchQuery) || c.opportunity.toLowerCase().includes(searchQuery) || c.currentAgency.toLowerCase().includes(searchQuery);
+                const matchesRegion = (regionFilter === "Todos" || c.region === regionFilter);
+                const matchesIndustry = (industryFilter === "Todos" || c.industry === industryFilter);
+                const matchesVector = (vectorFilter === "Todos" || c.vector.includes(vectorFilter));
+                const matchesStatus = (statusFilter === "Todos" || c.status === statusFilter);
+
+                return matchesSearch && matchesRegion && matchesIndustry && matchesVector && matchesStatus;
+            });
+
+            renderTable();
+            updateDashboardMetrics();
+        }
+
+        // Atualização Dinâmica de Métricas do Dashboard
+        function updateDashboardMetrics() {
+            document.getElementById('total-accounts').innerText = companies.length;
+            const qualifiedCount = companies.filter(c => c.status === "Qualificado").length;
+            const watchCount = companies.filter(c => c.status === "Watch").length;
+            const discardedCount = companies.filter(c => c.status === "Descartado").length;
+            
+            document.getElementById('qualified-accounts-metric').innerText = qualifiedCount + " Contas";
+            document.getElementById('watch-accounts-metric').innerText = watchCount + " Contas";
+            document.getElementById('discarded-accounts-metric').innerText = discardedCount + " Conta";
+        }
+
+        // Notificações Toast do Sistema (Sucesso/Erro)
+        function showToast(title, message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastTitle.innerText = title;
+            toastMessage.innerText = message;
+
+            if (isError) {
+                toastIcon.className = "h-8 w-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-lg flex-shrink-0";
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i>`;
+            } else {
+                toastIcon.className = "h-8 w-8 rounded-full bg-magenta-100 text-magenta-500 flex items-center justify-center text-lg flex-shrink-0";
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+
+        // Controle de Modais
+        function openAddModal() {
+            document.getElementById('modal-title').innerText = "Adicionar Nova Conta ICP";
+            document.getElementById('modal-form').reset();
+            document.getElementById('modal-id').value = "";
+            document.getElementById('company-modal').classList.remove('hidden');
+        }
+
+        function editCompany(id) {
+            const comp = companies.find(c => c.id === id);
+            if (!comp) return;
+
+            document.getElementById('modal-title').innerText = "Editar Cadastro de Conta";
+            document.getElementById('modal-id').value = comp.id;
+            document.getElementById('modal-name').value = comp.name;
+            document.getElementById('modal-region').value = comp.region;
+            document.getElementById('modal-industry').value = comp.industry;
+            document.getElementById('modal-vector').value = comp.vector;
+            document.getElementById('modal-revenue').value = comp.revenue;
+            document.getElementById('modal-adspend').value = comp.adSpend;
+            document.getElementById('modal-status').value = comp.status;
+            document.getElementById('modal-agency').value = comp.currentAgency;
+            document.getElementById('modal-opportunity').value = comp.opportunity;
+            document.getElementById('modal-website').value = comp.website;
+
+            document.getElementById('company-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('company-modal').classList.add('hidden');
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('modal-id').value;
+            const name = document.getElementById('modal-name').value;
+            const region = document.getElementById('modal-region').value;
+            const industry = document.getElementById('modal-industry').value;
+            const vector = document.getElementById('modal-vector').value;
+            const revenue = document.getElementById('modal-revenue').value;
+            const adSpend = document.getElementById('modal-adspend').value;
+            const status = document.getElementById('modal-status').value;
+            const currentAgency = document.getElementById('modal-agency').value;
+            const opportunity = document.getElementById('modal-opportunity').value;
+            const website = document.getElementById('modal-website').value;
+
+            if (id) {
+                const index = companies.findIndex(c => c.id === parseInt(id));
+                if (index !== -1) {
+                    companies[index] = { id: parseInt(id), name, region, industry, vector, revenue, adSpend, status, currentAgency, opportunity, website };
+                    showToast("Sucesso", "Cadastro de conta atualizado com sucesso!");
+                }
+            } else {
+                const newId = companies.length > 0 ? Math.max(...companies.map(c => c.id)) + 1 : 1;
+                companies.push({ id: newId, name, region, industry, vector, revenue, adSpend, status, currentAgency, opportunity, website });
+                showToast("Sucesso", "Nova conta ICP mapeada com sucesso!");
+            }
+
+            closeModal();
+            applyFilters();
+        }
+
+        function requestDeleteCompany(id) {
+            deleteTargetId = id;
+            document.getElementById('delete-confirm-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-confirm-modal').classList.add('hidden');
+            deleteTargetId = null;
+        }
+
+        document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+            if (deleteTargetId !== null) {
+                companies = companies.filter(c => c.id !== deleteTargetId);
+                showToast("Registro Excluído", "A conta foi removida do mapeamento temporário.");
+                applyFilters();
+            }
+            closeDeleteModal();
+        });
+
+        // ==========================================
+        //  INTEGRAÇÃO DIRETA COM A API DO GEMINI
+        // ==========================================
+
+        async function callGemini(systemPrompt, userPrompt) {
+            const apiKey = ""; // Chave do sistema injetada em tempo de execução
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        const textOutput = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (textOutput) return textOutput;
+                    }
+                } catch (error) {
+                    // Retentativa exponencial silenciosa
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            }
+            throw new Error("Não foi possível conectar ao Gemini IA.");
+        }
+
+        function openAIDrawer(company) {
+            selectedCompany = company;
+            
+            document.getElementById('drawer-company-name').innerText = company.name;
+            document.getElementById('drawer-company-vector').innerText = company.vector;
+            document.getElementById('drawer-company-spend').innerText = company.adSpend;
+            document.getElementById('drawer-company-tier').innerText = company.status;
+
+            // Reset
+            document.getElementById('outreach-output').innerText = "Configure o tom e clique no botão acima para acionar a Inteligência Artificial.";
+            document.getElementById('diagnostico-output').innerText = "Execute a análise IA para mapear objeções, decisores-chave e o plano de ação.";
+
+            const drawer = document.getElementById('ai-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.add('opacity-100');
+                drawer.classList.remove('translate-x-full');
+            }, 10);
+        }
+
+        function closeAIDrawer() {
+            const drawer = document.getElementById('ai-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            
+            drawer.classList.add('translate-x-full');
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function switchAITab(tab) {
+            currentAITab = tab;
+            const outreachBtn = document.getElementById('tab-outreach-btn');
+            const diagBtn = document.getElementById('tab-diagnostico-btn');
+            const outreachContent = document.getElementById('tab-outreach-content');
+            const diagContent = document.getElementById('tab-diagnostico-content');
+
+            if (tab === 'outreach') {
+                outreachBtn.className = "flex-1 py-3 text-center border-b-2 border-magenta-500 font-bold text-magenta-500 transition-colors";
+                diagBtn.className = "flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium transition-colors";
+                outreachContent.classList.remove('hidden');
+                diagContent.classList.add('hidden');
+            } else {
+                diagBtn.className = "flex-1 py-3 text-center border-b-2 border-magenta-500 font-bold text-magenta-500 transition-colors";
+                outreachBtn.className = "flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium transition-colors";
+                diagContent.classList.remove('hidden');
+                outreachContent.classList.add('hidden');
+            }
+        }
+
+        function copyToClipboard(elementId) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast("Sucesso", "Texto copiado com sucesso!");
+                } else {
+                    showToast("Erro", "Não foi possível copiar.", true);
+                }
+            } catch (err) {
+                showToast("Erro", "Falha de acesso ao clipboard.", true);
+            }
+            document.body.removeChild(tempTextArea);
+        }
+
+        async function generateOutreach() {
+            if (!selectedCompany) return;
+
+            const tone = document.getElementById('ai-tone').value;
+            const channel = document.getElementById('ai-channel').value;
+            const loading = document.getElementById('outreach-loading');
+            const output = document.getElementById('outreach-output');
+
+            loading.classList.remove('hidden');
+
+            const systemPrompt = `Você é o Diretor Comercial de Novos Negócios da Agência Repense. Escreva uma abordagem fria baseada no Método 3x3 e Playbook de New Business 2026. Use Português do Brasil com foco corporativo premium.`;
+            const userPrompt = `Abordagem para:
+            - Empresa: ${selectedCompany.name}
+            - Região: ${selectedCompany.region}
+            - Vetor Comercial: ${selectedCompany.vector}
+            - Verba Mídia: ${selectedCompany.adSpend}
+            - Concorrente: ${selectedCompany.currentAgency}
+            - Dor/Gatilho: ${selectedCompany.opportunity}
+            - Canal: ${channel}
+            - Tom: ${tone}`;
+
+            try {
+                const text = await callGemini(systemPrompt, userPrompt);
+                output.innerText = text;
+            } catch (error) {
+                output.innerText = `Erro ao gerar script: ${error.message}`;
+                showToast("Erro na IA", "Falha ao processar requisição.", true);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function generateDiagnosis() {
+            if (!selectedCompany) return;
+
+            const loading = document.getElementById('diagnostico-loading');
+            const output = document.getElementById('diagnostico-output');
+
+            loading.classList.remove('hidden');
+
+            const systemPrompt = `Você é o Head de Planejamento de BD da Repense. Analise criticamente a conta e monte uma estratégia com base no manual de New Business de 2026. Responda em 3 blocos bem divididos (Gaps Concorrentes, Gatilhos e Cargos de Decisão no LinkedIn).`;
+            const userPrompt = `Análise estratégica:
+            - Empresa: ${selectedCompany.name}
+            - Vetor: ${selectedCompany.vector}
+            - Gatilho: ${selectedCompany.opportunity}
+            - Concorrente: ${selectedCompany.currentAgency}`;
+
+            try {
+                const text = await callGemini(systemPrompt, userPrompt);
+                output.innerText = text;
+            } catch (error) {
+                output.innerText = `Erro: ${error.message}`;
+                showToast("Erro na IA", "Falha ao gerar o diagnóstico.", true);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
